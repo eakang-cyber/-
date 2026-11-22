@@ -16,7 +16,6 @@ import { findPlace } from "@/engine/places";
 import type { SitesRec } from "@/rules/recommend";
 import { siteLine, sitesFreeLine } from "@/rules/oracle";
 import { ELEMENT_KO } from "@/engine/constants";
-import { STEMS, BRANCHES } from "@/engine/constants";
 
 const EXAMPLES = [
   "대전 신탄진에 공장 부지를 사려고 하는데, 지금 움직여도 될지 모르겠어요.",
@@ -399,7 +398,7 @@ function DeepCounsel({ a }: { a: CounselAnswer }) {
             <li key={`${m.p.y}-${m.p.m}`} className="flex gap-3 items-baseline">
               <span className={cx("tabular w-5 shrink-0", i === 0 ? "text-gold" : "text-faint")}>{i + 1}</span>
               <span className="text-ivory tabular w-24 shrink-0">{m.p.y}년 {m.p.m}월</span>
-              <span className="text-[0.86rem] text-mist">{m.why.join(", ") || "무난한 흐름"} <span className="text-faint font-mono text-[0.75rem]">{STEMS[m.p.stem]}{BRANCHES[m.p.branch]}</span></span>
+              <span className="text-[0.86rem] text-mist">{m.why.join(", ") || "무난한 흐름"}</span>
             </li>
           ))}
         </ol>

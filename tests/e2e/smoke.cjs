@@ -18,8 +18,13 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
   ok(await p.getByText('23시대 출생').isVisible(), 'late-zi warning shown');
   await p.getByRole('button', { name: '내 인생 탐험 시작' }).click();
   await p.waitForTimeout(400);
-  ok(p.url().endsWith('#me'), 'navigated to #me');
-  ok(await p.getByText('민지님을 설명하는 첫 문장').isVisible(), 'character for new user');
+  ok(p.url().endsWith('#total'), 'onboarding lands on 총운');
+  ok(await p.getByRole('heading', { level: 1 }).filter({ hasText: /^민지님은 .+ 같은 사람이에요\./ }).isVisible(), 'total headline for new user');
+  ok(await p.getByText('초년운').isVisible() && await p.getByText('재물운', { exact: true }).isVisible() && await p.getByText('애정운', { exact: true }).isVisible(), 'total sections');
+  const bodyText = await p.locator('main').innerText();
+  ok(!/[\u4e00-\u9fff]/.test(bodyText), 'no hanja visible on 총운');
+  await p.goto(BASE + '/#me'); await p.waitForTimeout(300);
+  ok(await p.getByText('민지님을 설명하는 첫 문장').isVisible(), 'character page still reachable');
   ok(!(await p.getByText(/가상의 예시 인물/).first().isVisible().catch(()=>false)), 'example banner hidden for own profile');
   // story tabs
   await p.getByRole('tab').nth(2).click(); ok(await p.getByRole('tab').nth(2).getAttribute('aria-selected') === 'true', 'story tab switch');

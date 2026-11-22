@@ -47,7 +47,7 @@ export function Landing() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button size="lg" onClick={() => go("start")}>무료로 내 인생 탐험하기 <Icon.arrow /></Button>
-              <Button size="lg" variant="ghost" onClick={() => go("me")}>예시로 먼저 둘러보기</Button>
+              <Button size="lg" variant="ghost" onClick={() => go("total")}>예시로 먼저 둘러보기</Button>
             </div>
             <p className="text-[0.8rem] text-faint">회원가입 없이 시작 · 입력 정보는 서버로 보내지 않습니다 · 약 1분</p>
           </div>
@@ -173,7 +173,6 @@ export function Landing() {
               </div>
               <p className="mt-4 text-[1rem] leading-[1.8] text-ink">{b.body}</p>
               <p className="mt-4 text-[0.95rem] text-ink"><span className="text-ink-soft">스스로에게 묻기 · </span>{b.question}</p>
-              <p className="mt-6 pt-4 border-t border-ink/10 text-[0.75rem] text-ink-soft font-mono">근거 {b.ruleIds.join(" · ")} · {b.facts[0]}</p>
             </article>
           );
         })()}

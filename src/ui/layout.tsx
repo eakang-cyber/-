@@ -36,17 +36,13 @@ export function SampleBanner() {
   );
 }
 
-/** 계산 상태 표시: 미검증 */
+/** 계산 기준 링크(작게). 배지·버전 표기는 '계산 기준' 화면에서만. */
 export function CalcStatus() {
   const { go } = useRouter();
-  const { chart } = useStore();
   return (
-    <div className="flex flex-wrap items-center gap-2 text-[0.8rem] text-faint">
-      <Badge layer="calc" />
-      <Badge layer="unverified" />
-      <span>{chart.engineVersion} · 독립 자료 대조 전 결과입니다.</span>
-      <button onClick={() => go("method")} className="underline underline-offset-4 decoration-line hover:text-gold cursor-pointer">계산 기준 보기</button>
-    </div>
+    <button onClick={() => go("method")} className="self-start text-[0.78rem] text-faint underline underline-offset-4 decoration-line hover:text-gold cursor-pointer">
+      사주 계산 기준 보기
+    </button>
   );
 }
 

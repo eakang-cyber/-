@@ -67,7 +67,7 @@ export function Card({ className, children, as: As = "section" }: { className?: 
 }
 
 // ---------- Evidence (근거 펼쳐보기) ----------
-export function Evidence({ block, label = "해석의 근거 보기" }: { block: Pick<Block, "ruleIds" | "facts" | "alt">; label?: string }) {
+export function Evidence({ block, label = "왜 그런가요?" }: { block: Pick<Block, "ruleIds" | "facts" | "alt">; label?: string }) {
   const [open, setOpen] = useState(false);
   const id = useId();
   return (
@@ -81,7 +81,6 @@ export function Evidence({ block, label = "해석의 근거 보기" }: { block: 
       >
         <span aria-hidden className={cx("inline-block transition-transform", open && "rotate-90")}>›</span>
         {label}
-        <span className="font-mono text-[0.7rem] text-faint">{block.ruleIds.join(" · ")}</span>
       </button>
       {open && (
         <div id={id} className="mt-3 rounded-xl bg-night/70 border border-line/70 p-4 flex flex-col gap-3 text-[0.82rem]">
@@ -127,7 +126,6 @@ export function ReadingCard({ block, eyebrow, tone = "deep", children }: { block
     <article className={cx("rounded-2xl border border-line/70 p-5", tone === "deep" ? "bg-deep" : "bg-raised")}>
       <div className="flex items-center gap-2 mb-2">
         {eyebrow && <span className="eyebrow">{eyebrow}</span>}
-        <span className="ml-auto flex gap-1.5"><Badge layer="rule" /></span>
       </div>
       <h3 className="font-display text-[1.12rem] leading-snug font-semibold text-ivory">{block.title}</h3>
       <p className="mt-2 text-[0.95rem] text-ivory/85 leading-relaxed">{block.body}</p>

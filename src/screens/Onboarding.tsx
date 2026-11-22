@@ -80,7 +80,7 @@ export function Onboarding() {
     toast("계산을 마쳤습니다");
     const back = state.returnTo;
     dispatch({ type: "setReturnTo", value: null });
-    go((back as Parameters<typeof go>[0]) ?? "me");
+    go((back as Parameters<typeof go>[0]) ?? "total");
   };
 
   return (
@@ -89,7 +89,7 @@ export function Onboarding() {
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between text-[0.8rem] text-faint">
           <span className="tabular">{step + 1} / {STEPS.length} · {STEPS[step]}</span>
-          <button onClick={() => go("me")} className="text-mist hover:text-gold cursor-pointer">예시로 먼저 둘러보기</button>
+          <button onClick={() => go("total")} className="text-mist hover:text-gold cursor-pointer">예시로 먼저 둘러보기</button>
         </div>
         <div className="flex gap-1" aria-hidden>
           {STEPS.map((s, i) => <span key={s} className={cx("h-1 flex-1 rounded-full", i <= step ? "bg-gold" : "bg-line")} />)}

@@ -32,7 +32,7 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
   ok(await p.getByText(/^대전이라면 .+(이에요|맞아요)\.$/).first().isVisible(), 'where: free direction line');
   ok(await p.getByText('추가 결제 후 공개').first().isVisible(), 'where: ranked names locked before add-on');
   await p.getByText('사주 기준 추천이며, 실제 매물').click();
-  await p.getByRole('button', { name: '9,900원 모의 결제 (데모)' }).click(); await p.waitForTimeout(1000);
+  await p.getByRole('button', { name: '9,900원 모의 결제 (데모)', exact: true }).click(); await p.waitForTimeout(1000);
   ok(await p.getByText('대덕테크노밸리').first().isVisible() && await p.getByText('하소산업단지').first().isVisible(), 'where: 7 named sites after add-on');
   ok(await p.getByRole('link', { name: /토지이음에서 확인/ }).isVisible(), 'reality checklist with official link');
   await p.getByRole('button', { name: '일부만 맞아요' }).click();
