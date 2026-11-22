@@ -6,7 +6,7 @@ import { RULE_MAP } from "@/rules/registry";
 
 const p1: BirthInput = { name: "", calendar: "solar", year: 1992, month: 10, day: 8, isLeapMonth: false, timeKnown: true, hour: 8, minute: 10, cityId: "seoul", sex: "female" };
 const p2: BirthInput = { ...p1, year: 1985, month: 5, day: 21, hour: 15, minute: 40, sex: "male" };
-const inp: CounselInput = { text: "대전 신탄진에 공장 부지를 사려고 하는데 지금 움직여도 될지 모르겠어요", topic: null, deadline: "3개월 안", feeling: "두렵다", concern: "돈", optionA: "지금 산다", optionB: "1년 더 본다" };
+const inp: CounselInput = { text: "대전 신탄진에 공장 부지를 사려고 하는데 지금 움직여도 될지 모르겠어요", topic: null, deadline: "3개월 안", feeling: "두렵다", concern: "돈", optionA: "지금 산다", optionB: "1년 더 본다", baseCityId: "seoul", place: "", seek: null };
 const NOW = new Date(2026, 10, 22);
 
 describe("고민상담소", () => {

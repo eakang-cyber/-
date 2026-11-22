@@ -42,7 +42,7 @@ Node 20+ · Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · lunar-java
 ```
 src/engine/     결정론적 계산(원국·절기·시간대·진태양시·자시·대운·합충형) — AI 미사용
 src/rules/      전통 규칙 레지스트리(rule_id) · 해설 문안 · 규칙 적용기 · 조사 처리
-src/content/    샘플 데이터(강윤규 테스트 사용자, 데모 인물, 예시 기록)
+src/content/    샘플 데이터(가상의 예시 인물, 데모 상대, 예시 기록)
 src/state/      앱 상태(기본: 메모리 전용 / 선택: 탭 임시 보관) — 서버 전송 없음
 src/ui/         디자인 시스템 컴포넌트 · 차트 · 앱 셸 · 라우터
 src/screens/    11개 화면
@@ -59,7 +59,7 @@ docs/           설계 문서
 | 2 | 디자인 시스템 | [docs/02-design-system.md](docs/02-design-system.md) · `src/app/globals.css` · `src/ui/` |
 | 3 | 전체 화면 구조 | [docs/01 §5](docs/01-product-strategy.md) |
 | 4 | 사용자 여정 | [docs/01 §6](docs/01-product-strategy.md) |
-| 5 | 강윤규 샘플 콘텐츠 | [docs/03-sample-content-kang-yungyu.md](docs/03-sample-content-kang-yungyu.md) (엔진 생성) |
+| 5 | 샘플 콘텐츠(가상 인물) | [docs/03-sample-content-example.md](docs/03-sample-content-example.md) (엔진 생성) |
 | 6 | 데이터 모델 | [docs/04-data-model.md](docs/04-data-model.md) · [docs/schema.sql](docs/schema.sql) |
 | 7 | 계산 엔진 검증 계획 | [docs/05-engine-verification.md](docs/05-engine-verification.md) |
 | 8 | 유료 상품 구조 | [docs/01 §2, §7](docs/01-product-strategy.md) |
@@ -67,11 +67,11 @@ docs/           설계 문서
 | 10 | 기술 부채·위험 목록 | [docs/06-risks-and-tech-debt.md](docs/06-risks-and-tech-debt.md) |
 | + | 고민상담소 설계 | [docs/07-counsel-design.md](docs/07-counsel-design.md) |
 
-## 테스트 사용자 계산 결과 (미검증)
+## 기준 사례 계산 결과 (미검증, 가상 인물)
 
-강윤규 · 양력 1996-03-27 09:58 · 서울 · 남성 → **丙子년 辛卯월 癸亥일 丁巳시**
-표준시(09:58) · 경도 보정(09:25) · 진태양시(09:20) 모두 巳시 → 09:58의 시주 경계 영향 없음(가장 가까운 경계까지 약 25분).
-대운 순행, 청명까지 8.46일 → 약 2.8년 후(1999년 초) 壬辰 대운부터 시작.
+양력 1992-10-08 08:10 · 서울 · 여성 → **壬申년 己酉월 丁巳일 甲辰시**
+표준시(08:10) · 경도 보정(07:37) · 진태양시(07:51) 모두 辰시. 한로 입절 1시간 41분 전 출생이라 월 경계 검증 사례로 씁니다.
+대운 역행, 백로까지 30.6일 → 약 10.2년 후(2002년 말) 戊申 대운부터 시작.
 
 ## Phase 1 자체 점검
 

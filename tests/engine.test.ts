@@ -5,39 +5,44 @@ import { ganzhiHanja } from "@/engine/constants";
 import { localToUtc, tzOffsetMinutes, julianDayNumber } from "@/engine/time";
 import { findSolarLongitude, JIE_LONGITUDE } from "@/engine/sun";
 
+// 기준 사례: 가상의 예시 인물(앱의 예시와 동일). 한로(寒露) 입절 1시간 41분 전 출생 — 월 경계 사례.
 const base: BirthInput = {
-  name: "테스트", calendar: "solar", year: 1996, month: 3, day: 27, isLeapMonth: false,
-  timeKnown: true, hour: 9, minute: 58, cityId: "seoul", sex: "male",
+  name: "테스트", calendar: "solar", year: 1992, month: 10, day: 8, isLeapMonth: false,
+  timeKnown: true, hour: 8, minute: 10, cityId: "seoul", sex: "female",
 };
 const p = (c: ReturnType<typeof computeChart>) =>
   [c.pillars.year, c.pillars.month, c.pillars.day, c.pillars.hour].map((x) => (x ? ganzhiHanja(x.stem, x.branch) : "--")).join(" ");
 
-describe("강윤규 테스트 사용자 — 1996-03-27 09:58 서울", () => {
-  it("모든 시간 기준에서 丙子 辛卯 癸亥 丁巳", () => {
+describe("기준 사례 — 1992-10-08 08:10 서울 (가상 인물)", () => {
+  it("모든 시간 기준에서 壬申 己酉 丁巳 甲辰", () => {
     for (const timeBasis of ["clock", "lmt", "apparent"] as const) {
       const c = computeChart(base, { timeBasis, ziPolicy: "zi23" });
-      expect(p(c)).toBe("丙子 辛卯 癸亥 丁巳");
+      expect(p(c)).toBe("壬申 己酉 丁巳 甲辰");
     }
   });
-  it("시 경계 민감도: 세 기준 모두 같은 시지, 경도 보정 시각 약 09:26", () => {
+  it("lunar-javascript(UTC+8 벽시계로 변환 입력)와 원국 일치", () => {
+    expect(Solar.fromYmdHms(1992, 10, 8, 7, 10, 0).getLunar().getEightChar().toString()).toBe("壬申 己酉 丁巳 甲辰");
+  });
+  it("시 경계 민감도: 세 기준 모두 같은 시지, 경도 보정 시각 07:37, 경계까지 30분 초과", () => {
     const c = computeChart(base);
     expect(c.hourCheck?.consistent).toBe(true);
-    expect(c.basisWall.h).toBe(9);
-    expect(c.basisWall.mi).toBeGreaterThanOrEqual(25);
-    expect(c.basisWall.mi).toBeLessThanOrEqual(27);
-    expect(c.hourCheck!.minutesFromBoundary).toBeGreaterThan(20);
+    expect([c.basisWall.h, c.basisWall.mi]).toEqual([7, 37]);
+    expect(c.hourCheck!.minutesFromBoundary).toBeGreaterThan(30);
   });
-  it("대운: 양년 남성 → 순행, 청명까지 약 8.46일 → 약 2.8년, 壬辰부터", () => {
+  it("월 경계: 한로(10-08 09:51 KST) 직후 출생이면 월주가 庚戌로 바뀐다", () => {
+    expect(p(computeChart({ ...base, hour: 10, minute: 0 })).split(" ")[1]).toBe("庚戌");
+  });
+  it("대운: 양년 여성 → 역행, 백로까지 약 30.6일 → 약 10.2년, 戊申부터", () => {
     const c = computeChart(base);
-    expect(c.luck.direction).toBe("forward");
-    expect(c.nextJie.nameKo).toBe("청명");
-    expect(c.luck.startYears).toBeGreaterThan(2.7);
-    expect(c.luck.startYears).toBeLessThan(2.9);
-    expect(c.luck.periods.map((x) => ganzhiHanja(x.stem, x.branch)).slice(0, 4)).toEqual(["壬辰", "癸巳", "甲午", "乙未"]);
+    expect(c.luck.direction).toBe("backward");
+    expect(c.prevJie.nameKo).toBe("백로");
+    expect(c.luck.startYears).toBeGreaterThan(10.1);
+    expect(c.luck.startYears).toBeLessThan(10.3);
+    expect(c.luck.periods.map((x) => ganzhiHanja(x.stem, x.branch)).slice(0, 4)).toEqual(["戊申", "丁未", "丙午", "乙巳"]);
   });
-  it("관계: 子卯형, 巳亥충, 丙辛합, 丁癸충, 亥卯반합", () => {
+  it("관계: 丁壬합, 甲己합, 巳申합·형, 辰酉합, 辰申·巳酉반합", () => {
     const labels = computeChart(base).relations.map((r) => r.label);
-    expect(labels).toEqual(expect.arrayContaining(["子卯형", "巳亥충", "丙辛합", "丁癸충", "卯亥반합"]));
+    expect(labels).toEqual(expect.arrayContaining(["丁壬합", "甲己합", "巳申합", "巳申형", "辰酉합", "辰申반합", "巳酉반합"]));
   });
   it("동일 입력·동일 규칙 버전 → 동일 결과(결정론)", () => {
     expect(JSON.stringify(computeChart(base))).toBe(JSON.stringify(computeChart(base)));
@@ -68,7 +73,7 @@ describe("절기 경계", () => {
     expect(ganzhiHanja(after.pillars.month.stem, after.pillars.month.branch)).toBe("戊寅");
   });
   it("lunar-javascript 절기 시각 ↔ 독립 태양황경 근사식이 30분 이내", () => {
-    for (const y of [1950, 1975, 1996, 2010, 2026]) {
+    for (const y of [1950, 1975, 1992, 2010, 2026]) {
       for (const [m, d] of [[2, 10], [4, 10], [7, 10], [10, 10], [12, 10]]) {
         const { prev } = jieAround(Date.UTC(y, m - 1, d));
         const indep = findSolarLongitude(JIE_LONGITUDE[prev.name], prev.utcMs);
@@ -92,8 +97,8 @@ describe("자시(23시) 정책", () => {
 });
 
 describe("역사적 시간대", () => {
-  it("1996년은 UTC+9, 서머타임 없음", () => {
-    expect(tzOffsetMinutes(Date.UTC(1996, 6, 1))).toBe(540);
+  it("1992년은 UTC+9, 서머타임 없음", () => {
+    expect(tzOffsetMinutes(Date.UTC(1992, 6, 1))).toBe(540);
   });
   it("1988년 여름 서머타임(UTC+10)", () => {
     expect(tzOffsetMinutes(Date.UTC(1988, 6, 1))).toBe(600);
@@ -108,9 +113,9 @@ describe("역사적 시간대", () => {
 });
 
 describe("음력·윤달·입력 검증", () => {
-  it("음력 1996-02-09 → 양력 1996-03-27", () => {
-    const c = computeChart({ ...base, calendar: "lunar", year: 1996, month: 2, day: 9 });
-    expect(c.solarDate).toEqual({ y: 1996, m: 3, d: 27 });
+  it("음력 1992-09-13 → 양력 1992-10-08", () => {
+    const c = computeChart({ ...base, calendar: "lunar", year: 1992, month: 9, day: 13 });
+    expect(c.solarDate).toEqual({ y: 1992, m: 10, d: 8 });
   });
   it("2023 윤2월 1일 → 양력 2023-03-22", () => {
     const c = computeChart({ ...base, calendar: "lunar", year: 2023, month: 2, day: 1, isLeapMonth: true });

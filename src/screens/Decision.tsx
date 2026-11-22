@@ -13,6 +13,8 @@ import {
   CHECKLIST, DECISION_TYPES, DecisionType, MonthCell, PHASES, buildMonths, buildRoadmap, guessType, monthBlock,
 } from "@/rules/decision";
 import { j } from "@/rules/josa";
+import { recommendPlace, recommendTiming } from "@/rules/recommend";
+import { findPlace } from "@/engine/places";
 
 const fmtPrice = (n: number) => n.toLocaleString("ko-KR");
 
@@ -78,7 +80,7 @@ function questionsFor(type: DecisionType, text: string, place: string, budget: s
 }
 
 export function Decision() {
-  const { state, dispatch, chart, toast } = useStore();
+  const { state, dispatch, chart, subject } = useStore();
   const { go } = useRouter();
   const d = state.decision;
   const set = (patch: Partial<typeof d>) => dispatch({ type: "setDecision", patch });
@@ -104,13 +106,19 @@ export function Decision() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d.text]);
 
+  const rec = useMemo(() => {
+    if (!type || !phase) return null;
+    const who = state.profileIsSample ? "예시 인물" : subject.name || "고객";
+    const pl = findPlace(d.place || d.text);
+    return { timing: recommendTiming(chart, [phase.group], now), place: pl ? recommendPlace(chart, pl, subject.cityId, who, true) : null };
+  }, [chart, type, phase, d.place, d.text, now, state.profileIsSample, subject]);
   const aligned = phase ? months12.filter((m) => m.strong.includes(phase.id) || m.weak.includes(phase.id)) : [];
   const title = d.text.trim() || "앞둔 결정";
 
   return (
     <Page wide>
       <ScreenTitle eyebrow="중요한 결정 리포트" title={ready ? `“${title}”` : "앞둔 결정을 한 줄로 적어 보세요"}
-        desc="내 사주의 앞으로 12개월 주제와 결정 단계를 맞대어 봅니다. 사라, 사지 마라는 말은 하지 않습니다. 대신 무엇을 언제 확인할지 정리해 드립니다.">
+        desc="내 사주 기준으로 이 결정을 언제 움직이면 좋은지, 그 장소가 나와 맞는지 바로 말씀드리고, 단계별로 무엇을 확인할지 정리해 드려요.">
         <CalcStatus />
       </ScreenTitle>
 
@@ -203,22 +211,18 @@ export function Decision() {
             })()}
           </section>
 
-          {/* 무료 3: 어디? */}
-          <section className="grid md:grid-cols-2 gap-4">
-            <article className="rounded-2xl border border-line/70 bg-deep p-5">
-              <h3 className="font-display text-[1.05rem] font-semibold">“어디가 맞나요?”에 대한 정직한 답</h3>
-              <p className="mt-2 text-[0.9rem] text-mist leading-relaxed">
-                사주로 {d.place ? j(d.place, "이/가") : "특정 지역이나 부지가"} 나에게 맞는 땅이라고 말할 근거는 없습니다. 전통 방위론은 학파마다 판단이 갈려 아직 검수 중이며, 큰돈이 걸린 선택에 쓰지 않도록 설계했습니다.
-                장소는 아래 확인 목록과 후보 비교로 정하세요.
+          {/* 무료 3: 결론 — 사주 기준 시기·장소 추천 */}
+          {rec && (
+            <section className="rounded-3xl border border-gold/60 bg-raised p-6 flex flex-col gap-3">
+              <div className="flex items-center gap-2"><p className="eyebrow">결론</p><span className="ml-auto"><Badge layer="rule">사주 기준 추천</Badge></span></div>
+              <p className="font-display text-[1.25rem] sm:text-[1.5rem] leading-[1.55] font-semibold">
+                '{phase?.label}' 단계는 {j(`${rec.timing.best.label}, 특히 ${rec.timing.best.bestLabel}`, "을/를")} 추천드려요.{rec.place ? ` ${rec.place.line}` : ""}
               </p>
-            </article>
-            <article className="rounded-2xl border border-line/70 bg-deep p-5">
-              <h3 className="font-display text-[1.05rem] font-semibold">“언제가 시즌인가요?”</h3>
-              <p className="mt-2 text-[0.9rem] text-mist leading-relaxed">
-                실제 '시즌'은 금리, 정책자금 공고, 매물이 나오는 시기, 인허가 기간이 정합니다. 위 달력은 그 일정 안에서 <b className="text-ivory">어느 달에 어떤 주제를 의식할지</b>를 보여 주는 보조 도구입니다.
-              </p>
-            </article>
-          </section>
+              {rec.timing.avoid && <p className="text-[0.92rem] text-mist">{j(rec.timing.avoid.label, "은/는")} 서두르지 않는 게 좋아요.</p>}
+              <Evidence block={{ ruleIds: ["YONG-EOKBU-001", "REC-TIMING-001", "LUCK-MONTH-001", ...(rec.place ? ["DIR-BAGUA-001"] : [])], facts: [...rec.timing.facts, ...(rec.place ? rec.place.facts.slice(0, 1) : [])] }} label="이 추천의 근거" />
+              {!rec.place && <p className="text-[0.8rem] text-faint">장소·대상 칸에 지역 이름(예: 신탄진, 천안)을 적으면 나와 맞는 곳인지도 봐 드려요.</p>}
+            </section>
+          )}
 
           {/* 무료 4: 확인 목록 3개 */}
           {type && <Checklist type={type} limit={unlocked ? undefined : 3} />}

@@ -3,7 +3,7 @@ import { computeChart, BirthInput } from "@/engine/chart";
 import { buildCharacter, buildDecades, buildPair, buildWork, buildYears, yearBlock } from "@/rules/interpret";
 import { RULE_MAP } from "@/rules/registry";
 
-const yk: BirthInput = { name: "강윤규", calendar: "solar", year: 1996, month: 3, day: 27, isLeapMonth: false, timeKnown: true, hour: 9, minute: 58, cityId: "seoul", sex: "male" };
+const yk: BirthInput = { name: "예시", calendar: "solar", year: 1992, month: 10, day: 8, isLeapMonth: false, timeKnown: true, hour: 8, minute: 10, cityId: "seoul", sex: "female" };
 const other: BirthInput = { ...yk, name: "비교", year: 1989, month: 11, day: 2, hour: 18, minute: 10, cityId: "busan", sex: "female" };
 
 const allBlocks = (c: ReturnType<typeof computeChart>) => {
@@ -41,7 +41,7 @@ describe("해석 계층", () => {
     console.log(buildDecades(c).map((d) => `${d.startYear}-${d.endYear} ${d.label.ko} ${d.block.title}`).join("\n"));
     const y26 = buildYears(c).find((y) => y.year === 2026)!;
     console.log(yearBlock(c, y26));
-    const p = buildPair(c, computeChart(other), "윤규", "상대");
+    const p = buildPair(c, computeChart(other), "예시", "상대");
     console.log(p.aReadsB.title, "|", p.bReadsA.title, "|", p.dayBranch.title, "|", p.complement.body);
   });
 });

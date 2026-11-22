@@ -66,7 +66,7 @@ const initial: State = {
   beta: { visited: [], purchaseClicked: false, priceVariant: null, decisionClicked: false },
   decision: { text: "", type: null, phase: null, place: "", budget: "", optionA: "", optionB: "" },
   decisionUnlocked: false,
-  counsel: { text: "", topic: null, deadline: null, feeling: null, concern: null, optionA: "", optionB: "" },
+  counsel: { text: "", topic: null, deadline: null, feeling: null, concern: null, optionA: "", optionB: "", baseCityId: "", place: "", seek: null },
   counselSubmitted: false,
   counselReaction: null,
   returnTo: null,

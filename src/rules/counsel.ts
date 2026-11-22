@@ -6,7 +6,9 @@ import { ChartResult, annualPillar, luckPeriodAt, monthPeriods, pillarLabel } fr
 import { Block, buildCharacter } from "./interpret";
 import { CHECKLIST, CheckItem, DecisionType } from "./decision";
 import { GROUP_TEXT } from "./content";
-import { jq } from "./josa";
+import { j, jq } from "./josa";
+import { LoveRec, PlaceRec, TimingRec, findPlace, helpfulElements, recommendLove, recommendPlace, recommendTiming } from "./recommend";
+import { ELEMENT_KO } from "@/engine/constants";
 
 export type Topic = "career" | "money" | "realestate" | "business" | "love" | "family" | "people" | "self";
 
@@ -104,6 +106,12 @@ export interface CounselInput {
   concern: (typeof CONCERNS)[number] | null;
   optionA: string;
   optionB: string;
+  /** 지금 사는 곳(방위 기준) */
+  baseCityId: string;
+  /** 관련 장소(글에서 자동 인식, 수정 가능) */
+  place: string;
+  /** 연애: 만나고 싶은 상대 */
+  seek: "여성" | "남성" | "사람" | null;
 }
 
 /** 위기 신호: 사주 상담 대신 전문 기관 안내로 전환한다. */
@@ -133,7 +141,19 @@ const CONCERN_TEXT: Record<(typeof CONCERNS)[number], string> = {
   "몸과 마음": "몸과 마음이 지쳐 있다면 큰 결정은 잠을 충분히 잔 뒤로 미루는 것이 우선입니다. 힘든 상태가 이어지면 전문가와 이야기해 보세요.",
 };
 
+export interface Recommendation {
+  headline: string;
+  why: string;
+  avoid: string | null;
+  timing: TimingRec;
+  place: PlaceRec | null;
+  love: LoveRec | null;
+  ruleIds: string[];
+  facts: string[];
+}
+
 export interface CounselAnswer {
+  rec: Recommendation;
   topic: TopicDef;
   understood: string;
   focusGroups: ThemeGroup[];
@@ -146,7 +166,7 @@ export interface CounselAnswer {
   questions: string[];
 }
 
-export function buildCounsel(chart: ChartResult, inp: CounselInput, now = new Date()): CounselAnswer | null {
+export function buildCounsel(chart: ChartResult, inp: CounselInput, now = new Date(), name = "고객"): CounselAnswer | null {
   if (!inp.text.trim() || !inp.topic) return null;
   const topic = TOPICS.find((t) => t.id === inp.topic)!;
   const groups = topic.groups(chart);
@@ -192,7 +212,7 @@ export function buildCounsel(chart: ChartResult, inp: CounselInput, now = new Da
   const timing: Block = {
     id: "counsel-timing",
     title: relevant.length ? `앞으로 12개월 중 ${relevant.length}개월에 이 고민의 주제가 드러납니다` : "앞으로 12개월은 이 고민의 주제가 직접 드러나지 않는 흐름입니다",
-    body: `${lpG ? `지금 지나는 10년의 주제는 '${GROUP_LABEL[lpG]}', ` : ""}${y}년의 주제는 '${GROUP_LABEL[yG]}'입니다. ${relevant.length ? `${relevant.map((x) => `${x.m}월`).join(", ")} 무렵은 ${groups.map((g) => `'${GROUP_LABEL[g]}'`).join(" 또는 ")} 주제가 그달에 드러나는 달입니다. 이 고민을 다시 꺼내 점검하기 좋은 달로 표시해 둘 수 있습니다.` : "이 고민을 서두르기보다 준비와 정보 모으기에 시간을 쓰는 흐름으로 읽을 수 있습니다."} 언제 하라는 뜻이 아니라, 언제 다시 들여다볼지 정하는 데 쓰세요.`,
+    body: `${lpG ? `지금 지나는 10년의 주제는 '${GROUP_LABEL[lpG]}', ` : ""}${y}년의 주제는 '${GROUP_LABEL[yG]}'입니다. ${relevant.length ? `${relevant.map((x) => `${x.m}월`).join(", ")} 무렵은 ${groups.map((g) => `'${GROUP_LABEL[g]}'`).join(" 또는 ")} 주제가 그달에 드러나는 달이에요.` : "12개월 안에는 이 고민의 주제가 직접 드러나는 달이 없어요. 준비하고 정보를 모으는 시기로 쓰세요."}`,
     ruleIds: ["LUCK-YEAR-001", "LUCK-MONTH-001", ...(lp ? ["LUCK-DECADE-001"] : [])],
     facts: [`세운 ${pillarLabel(annualPillar(y)).hanja}`, ...(lp ? [`대운 ${pillarLabel(lp).hanja}`] : []), ...relevant.map((x) => `${x.y}.${x.m} ${x.label}월`)],
   };
@@ -206,7 +226,36 @@ export function buildCounsel(chart: ChartResult, inp: CounselInput, now = new Da
     GROUP_TEXT[groups[0]].question,
   ];
 
-  return { topic, understood, focusGroups: groups, me: me.slice(0, 3), timing, months: ms, heart, checks: topic.checklist, experiment: topic.experiment, questions };
+  // ---------- 직관적 추천 ----------
+  const timingRec = recommendTiming(chart, groups, now);
+  const h = helpfulElements(chart);
+  const best = timingRec.best;
+  const placeObj = findPlace(inp.place || inp.text);
+  const moneyTopic = ["realestate", "business", "money"].includes(topic.id);
+  const placeRec = placeObj && ["realestate", "business", "career", "money"].includes(topic.id) ? recommendPlace(chart, placeObj, inp.baseCityId || chart.input.cityId, name, moneyTopic) : null;
+  const love = topic.id === "love" ? recommendLove(chart, name, inp.seek ?? (chart.input.sex === "male" ? "여성" : chart.input.sex === "female" ? "남성" : "사람"), now) : null;
+  const when = `${best.label}, 특히 ${best.bestLabel}`;
+  const lead: Record<Topic, string> = {
+    realestate: `${name}님에게는 ${j(when, "을/를")} 추천드려요.`,
+    business: `${name}님이 움직인다면 ${j(when, "을/를")} 추천드려요.`,
+    career: `${name}님이 옮긴다면 ${j(when, "을/를")} 추천드려요.`,
+    money: `큰돈을 움직인다면 ${j(when, "을/를")} 추천드려요.`,
+    love: love?.line ?? "",
+    family: `이 문제를 풀기 좋은 때는 ${best.label}이에요. ${best.bestLabel}에 먼저 이야기를 꺼내 보세요.`,
+    people: `관계를 정리하거나 회복하기 좋은 때는 ${best.label}이에요. ${best.bestLabel}에 먼저 움직여 보세요.`,
+    self: `새로운 방향을 시작하기 좋은 때는 ${best.label}이에요. ${best.bestLabel}에 첫 시도를 해 보세요.`,
+  };
+  const headline = [lead[topic.id], placeRec?.line].filter(Boolean).join(" ");
+  const bestWhy = best.months.find((m) => m.p.m === best.best.m)?.why ?? [];
+  const why = love ? love.why : `${name}님 사주는 ${h.helpful.map((e) => ELEMENT_KO[e]).join("·")} 기운이 힘이 되는 구조인데, ${best.short}에 ${bestWhy.length ? bestWhy.slice(0, 2).join(", ") : "그 기운"}${bestWhy.length ? "이 겹쳐요" : "이 들어와요"}.`;
+  const avoid = timingRec.avoid && topic.id !== "love" ? `${j(timingRec.avoid.label, "은/는")} 서두르지 않는 게 좋아요. 힘이 되는 기운이 약하게 들어오는 때예요.` : null;
+  const rec: Recommendation = {
+    headline, why, avoid, timing: timingRec, place: placeRec, love,
+    ruleIds: ["YONG-EOKBU-001", "REC-TIMING-001", "LUCK-MONTH-001", ...(placeRec ? ["DIR-BAGUA-001"] : []), ...(love ? ["LOVE-STAR-001"] : [])],
+    facts: [...(love ? love.facts : timingRec.facts), ...(placeRec ? placeRec.facts.slice(0, 1) : [])],
+  };
+
+  return { rec, topic, understood, focusGroups: groups, me: me.slice(0, 3), timing, months: ms, heart, checks: topic.checklist, experiment: topic.experiment, questions };
 }
 
 /** AI 상담사(설명자)에게 보낼 프롬프트. 출생일·이름은 보내지 않는다. */
@@ -217,15 +266,16 @@ export function counselPrompt(inp: CounselInput, a: CounselAnswer): string {
     선택지: [inp.optionA, inp.optionB].filter((x) => x.trim()),
     사주근거: a.me.map((b) => ({ 제목: b.title, 내용: b.body, 규칙: b.ruleIds })),
     시기근거: { 제목: a.timing.title, 내용: a.timing.body, 규칙: a.timing.ruleIds },
+    추천: { 결론: a.rec.headline, 이유: a.rec.why, 피할때: a.rec.avoid, 월별순위: a.rec.timing.ranked.map((m) => `${m.p.y}.${m.p.m}`) },
   };
   return `당신은 '운명OS'의 고민 상담 설명자입니다. 사주를 계산하지 말고, 아래 [근거]에 있는 전통 해석만 사용해 고객의 고민에 한국어로 답하세요.
 
 규칙:
-- 고객의 말을 1~2번 그대로 인용해 '내 이야기'로 느끼게 하세요.
-- 전통 해석과 현실 조언을 섞지 말고 각각의 필드에 쓰세요.
-- 미래를 예언하거나 확률·점수를 말하지 마세요. 사망·질병·파산·이혼·사고 같은 단정 금지.
-- 특정 선택(사라/사지 마라, 헤어져라 등)을 권하지 마세요. 결정은 고객이 합니다.
-- 돈·건강·법률은 실제 근거와 전문가를 우선하라고 말하세요.
+- 결론부터 직관적으로 말하세요. [근거]의 '추천' 결론(시기·장소·인연)을 그대로 쓰고 바꾸지 마세요. 예: "내년 봄, 특히 3월을 추천드려요." "신탄진은 잘 맞는 편이에요."
+- 빙빙 돌려 말하지 말고, 고객 이름을 불러 단정하지 않되 분명하게 권하세요("추천드려요", "~할 가능성이 커요").
+- 고객의 말을 1번 그대로 인용해 '내 이야기'로 느끼게 하세요.
+- 확률·퍼센트·점수는 말하지 마세요. 사망·질병·사고·파산·이혼 같은 불행 예언 금지.
+- 현실 조언 필드에는 계약 전에 확인할 실제 조건 하나를 짧게 쓰세요.
 - 한자와 명리 전문 용어(십성, 대운, 일간 등)를 쓰지 마세요. 따뜻하지만 담백한 존댓말.
 - 각 필드는 2~4문장.
 
@@ -233,7 +283,7 @@ export function counselPrompt(inp: CounselInput, a: CounselAnswer): string {
 ${JSON.stringify(facts, null, 1)}
 
 JSON 하나만 답하세요:
-{"opening": "고객의 상황을 공감하며 요약", "tradition": "근거에 있는 전통 해석으로 본 이 고민 앞의 나", "timing": "근거에 있는 시기 주제를 언제 다시 들여다볼지의 관점으로", "practical": "사주와 무관한 현실적인 다음 한 걸음", "question": "고객이 스스로에게 던질 질문 하나"}`;
+{"opening": "결론(추천)부터 한두 문장", "tradition": "왜 그런지 — 근거의 전통 해석으로 본 이 고민 앞의 나", "timing": "추천 시기와 피할 때, 월별 순위를 풀어서", "practical": "그 시기에 맞춰 할 현실적인 준비 하나", "question": "고객이 스스로에게 던질 질문 하나"}`;
 }
 
 const BANNED = ["사망", "죽", "파산", "이혼", "사고가", "확률", "%", "반드시", "무조건", "대운", "십성", "일간", "용신"];

@@ -100,7 +100,7 @@ export function Onboarding() {
         <section className="flex flex-col gap-6">
           <h1 className="font-display text-[1.6rem] font-semibold leading-snug">어떻게 불러 드릴까요?</h1>
           <Field label="이름 또는 닉네임" htmlFor="ob-name" hint="실명이 아니어도 됩니다. 계산에는 쓰이지 않고 화면 표시에만 씁니다." error={touched ? stepError : null}>
-            <input id="ob-name" className={inputCls} value={d.name} maxLength={20} autoComplete="nickname" placeholder="예: 윤규" onChange={(e) => set({ name: e.target.value })} onKeyDown={(e) => e.key === "Enter" && next()} />
+            <input id="ob-name" className={inputCls} value={d.name} maxLength={20} autoComplete="nickname" placeholder="예: 민지" onChange={(e) => set({ name: e.target.value })} onKeyDown={(e) => e.key === "Enter" && next()} />
           </Field>
           <Field label="입력 정보 보관 방식" hint="어느 쪽이든 서버로 전송되지 않습니다.">
             <Segmented label="보관 방식" value={state.saveMode} onChange={(v) => dispatch({ type: "setSaveMode", value: v })}

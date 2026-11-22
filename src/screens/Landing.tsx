@@ -87,7 +87,7 @@ export function Landing() {
           <div>
             <p className="eyebrow">고민상담소</p>
             <h2 className="mt-3 font-display text-[1.6rem] lg:text-[2rem] font-semibold leading-snug">지금 고민을 내 말로 적어 보세요</h2>
-            <p className="mt-3 text-mist leading-relaxed">이직, 돈, 부동산, 연애, 가족. 상황을 적고 몇 가지만 누르면, 내 사주의 구조와 앞으로 12개월의 흐름에 비춘 상담지를 받습니다. 대신 결정하지 않고, 무엇을 확인할지 함께 정리합니다.</p>
+            <p className="mt-3 text-mist leading-relaxed">이직, 돈, 부동산, 연애, 가족. 상황을 적고 몇 가지만 누르면, 내 사주 기준으로 언제가 좋은지, 그 장소가 나와 맞는지, 인연은 언제 오는지 바로 말씀드려요.</p>
           </div>
           <div className="rounded-3xl border border-line/80 bg-deep p-5 flex flex-col gap-3">
             <label htmlFor="landing-worry" className="text-[0.85rem] text-mist">지금 어떤 고민이 있나요?</label>
@@ -195,7 +195,7 @@ export function Landing() {
             <h2 className="font-display text-[1.2rem] font-semibold">전통 해석의 한계</h2>
             <ul className="mt-4 flex flex-col gap-2 text-[0.92rem] text-mist leading-relaxed">
               <li>· 명리학은 오래된 해석 체계이며, 과학적으로 미래를 예측한다는 근거는 없습니다.</li>
-              <li>· 운명OS는 사건을 예언하지 않고, 위험한 해나 수명 같은 단정을 표시하지 않습니다.</li>
+              <li>· 시기·장소·인연 추천은 전통 명리 규칙에 근거하며, 근거를 펼쳐 볼 수 있습니다. 수명·사고·질병 같은 불행은 예언하지 않습니다.</li>
               <li>· 학파마다 해석이 다른 부분은 다른 해석을 함께 보여 줍니다.</li>
               <li>· 돈, 건강, 법률에 관한 결정은 실제 근거와 전문가의 의견을 우선하세요.</li>
             </ul>

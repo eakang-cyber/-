@@ -11,6 +11,9 @@ import { BetaCard } from "./Feedback";
 import { GROUP_COLOR, GROUP_LABEL } from "@/engine/constants";
 import { CONCERNS, DEADLINES, FEELINGS, TOPICS, Topic, hasCrisisSignal, buildCounsel, checkAiAnswer, counselPrompt, guessTopic, CounselAnswer, CounselInput } from "@/rules/counsel";
 import { PHASES } from "@/rules/decision";
+import { CITIES } from "@/engine/cities";
+import { findPlace } from "@/engine/places";
+import { STEMS, BRANCHES } from "@/engine/constants";
 
 const EXAMPLES = [
   "대전 신탄진에 공장 부지를 사려고 하는데, 지금 움직여도 될지 모르겠어요.",
@@ -39,11 +42,12 @@ function useSampler() {
 }
 
 export function Counsel() {
-  const { state, dispatch, chart, toast } = useStore();
+  const { state, dispatch, chart, subject } = useStore();
   const { go } = useRouter();
   const c = state.counsel;
   const set = (patch: Partial<CounselInput>) => dispatch({ type: "setCounsel", patch });
-  const answer = useMemo(() => buildCounsel(chart, c), [chart, c]);
+  const who = state.profileIsSample ? "예시 인물" : subject.name || "고객";
+  const answer = useMemo(() => buildCounsel(chart, c, new Date(), who), [chart, c, who]);
   const answerRef = useRef<HTMLDivElement>(null);
   const [touched, setTouched] = useState(false);
 
@@ -52,6 +56,8 @@ export function Counsel() {
       const g = guessTopic(c.text);
       if (g) set({ topic: g });
     }
+    const pl = findPlace(c.text);
+    if (pl && !c.place) set({ place: pl.name });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [c.text]);
 
@@ -68,7 +74,7 @@ export function Counsel() {
   return (
     <Page>
       <ScreenTitle eyebrow="고민상담소" title="지금 어떤 고민이 있나요?"
-        desc="상황을 내 말로 적고 몇 가지만 눌러 주세요. 내 사주의 구조와 앞으로 12개월의 흐름에 비추어 상담지를 써 드립니다. 대신 결정하지는 않습니다.">
+        desc="상황을 내 말로 적고 몇 가지만 눌러 주세요. 내 사주 기준으로 언제가 좋은지, 그 장소가 나와 맞는지, 인연은 언제 오는지 바로 말씀드려요.">
         <CalcStatus />
       </ScreenTitle>
 
@@ -135,6 +141,25 @@ export function Counsel() {
           <Field label="가장 걸리는 건 무엇인가요?">
             <Segmented size="sm" label="걸리는 것" value={c.concern ?? ""} onChange={(v) => set({ concern: v as CounselInput["concern"] })} options={CONCERNS.map((x) => ({ value: x, label: x }))} />
           </Field>
+          {c.topic && ["realestate", "business", "career", "money"].includes(c.topic) && (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="지금 사는 곳" htmlFor="cs-base">
+                <select id="cs-base" className="h-11 rounded-xl bg-night border border-line px-3 text-ivory text-[0.92rem]" value={c.baseCityId || subject.cityId} onChange={(e) => set({ baseCityId: e.target.value })}>
+                  {CITIES.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+                </select>
+              </Field>
+              <Field label="관련 장소 (선택)" htmlFor="cs-place">
+                <input id="cs-place" className="h-11 rounded-xl bg-night border border-line px-3.5 text-ivory placeholder:text-faint text-[0.92rem] focus:border-gold/70 outline-none" placeholder="예: 신탄진" maxLength={20} value={c.place} onChange={(e) => set({ place: e.target.value })} />
+              </Field>
+              {c.place && !findPlace(c.place) && <p className="col-span-2 text-[0.78rem] text-faint">'{c.place}'은 아직 방위 목록에 없어요. 가까운 시·구 이름(예: 천안, 신탄진)으로 적으면 나와 맞는지 봐 드려요.</p>}
+            </div>
+          )}
+          {c.topic === "love" && (
+            <Field label="만나고 싶은 상대">
+              <Segmented size="sm" label="만나고 싶은 상대" value={c.seek ?? (subject.sex === "male" ? "여성" : subject.sex === "female" ? "남성" : "사람")} onChange={(v) => set({ seek: v as CounselInput["seek"] })}
+                options={[{ value: "여성", label: "여성" }, { value: "남성", label: "남성" }, { value: "사람", label: "상관없음" }]} />
+            </Field>
+          )}
           <Field label="고민 중인 선택지가 있다면 (선택)">
             <div className="grid grid-cols-2 gap-2">
               <input aria-label="선택지 A" className="h-11 rounded-xl bg-night border border-line px-3.5 text-ivory placeholder:text-faint text-[0.92rem] focus:border-gold/70 outline-none" placeholder="예: 지금 산다" maxLength={30} value={c.optionA} onChange={(e) => set({ optionA: e.target.value })} />
@@ -180,6 +205,15 @@ function AnswerSheet({ a }: { a: CounselAnswer }) {
         <p className="mt-4 text-[0.8rem] text-ink-soft">이렇게 이해했어요</p>
         <p className="mt-1 font-display text-[1.15rem] sm:text-[1.3rem] leading-[1.6] font-semibold">{a.understood}</p>
         <button onClick={() => document.getElementById("cs-text")?.focus()} className="mt-3 text-[0.82rem] text-ink-soft underline underline-offset-4 cursor-pointer">고쳐 쓰기</button>
+      </div>
+
+      <div className="rounded-3xl border border-gold/60 bg-raised p-6 sm:p-7 flex flex-col gap-3">
+        <div className="flex items-center gap-2"><p className="eyebrow">결론</p><span className="ml-auto"><Badge layer="rule">사주 기준 추천</Badge></span></div>
+        <p className="font-display text-[1.3rem] sm:text-[1.55rem] leading-[1.55] font-semibold text-ivory">{a.rec.headline}</p>
+        <p className="text-[0.95rem] text-ivory/85 leading-relaxed">{a.rec.why}</p>
+        {a.rec.avoid && <p className="text-[0.92rem] text-mist">{a.rec.avoid}</p>}
+        <Evidence block={{ ruleIds: a.rec.ruleIds, facts: a.rec.facts }} label="이 추천의 근거" />
+        <p className="text-[0.75rem] text-faint">전통 명리 해석에 근거한 추천이에요. 계약·투자는 아래 현실 조건도 함께 확인하세요.</p>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -271,6 +305,7 @@ function DeepPaywall({ a }: { a: CounselAnswer }) {
       </div>
       <ul className="flex flex-col gap-2 text-[0.92rem]">
         {[
+          "월별 추천 순위 TOP 5 — 앞으로 24개월 중 가장 좋은 달과 그 이유",
           "AI 상담사 풀이 — 내가 쓴 문장과 사주 근거를 엮은 맞춤 답변 (근거 규칙 밖의 말은 걸러 냄)",
           "추가 질문 3번 — '그럼 이건요?'를 이어서 물어보기",
           ...(a.topic.decision ? [`결정 리포트 — 24개월 단계별 흐름, 후보 비교, 확인 목록 전체, 질문 10개`] : []),
@@ -341,6 +376,19 @@ function DeepCounsel({ a }: { a: CounselAnswer }) {
   return (
     <section className="flex flex-col gap-5">
       <div className="flex items-center gap-2"><Badge layer="premium">심층 상담</Badge><Badge layer="demo" /></div>
+
+      <div className="rounded-3xl border border-line/70 bg-deep p-6 flex flex-col gap-3">
+        <p className="eyebrow">월별 추천 순위 TOP 5</p>
+        <ol className="flex flex-col gap-2.5">
+          {(a.rec.love ? [...a.rec.love.when.months].sort((x, y) => y.score - x.score) : a.rec.timing.ranked).slice(0, 5).map((m, i) => (
+            <li key={`${m.p.y}-${m.p.m}`} className="flex gap-3 items-baseline">
+              <span className={cx("tabular w-5 shrink-0", i === 0 ? "text-gold" : "text-faint")}>{i + 1}</span>
+              <span className="text-ivory tabular w-24 shrink-0">{m.p.y}년 {m.p.m}월</span>
+              <span className="text-[0.86rem] text-mist">{m.why.join(", ") || "무난한 흐름"} <span className="text-faint font-mono text-[0.75rem]">{STEMS[m.p.stem]}{BRANCHES[m.p.branch]}</span></span>
+            </li>
+          ))}
+        </ol>
+      </div>
 
       <div className="rounded-3xl border border-gold/40 bg-raised p-6 flex flex-col gap-4">
         <div className="flex items-center gap-2"><p className="eyebrow">AI 상담사 풀이</p><span className="ml-auto"><Badge layer="copy">AI 해설</Badge></span></div>
