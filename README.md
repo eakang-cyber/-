@@ -9,19 +9,23 @@
 ```bash
 npm install
 npm run dev            # http://localhost:3000
-npm test               # 엔진·해석 단위 테스트(24건)
+npm test               # 엔진·해석·상담 단위 테스트(33건)
 npm run build && npm start
-BASE_URL=http://localhost:3000 node tests/e2e/smoke.cjs   # E2E 스모크(13건, Playwright)
+BASE_URL=http://localhost:3000 node tests/e2e/smoke.cjs     # E2E 스모크(15건, Playwright)
+BASE_URL=http://localhost:3000 node tests/e2e/counsel.cjs   # 고민상담소 흐름(14건)
 npm run build && npm run build:artifact                    # dist/destiny-os.html 단일 파일 미리보기
 ```
 
 Node 20+ · Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · lunar-javascript(MIT).
 
-## 화면 (11개, 해시 라우팅)
+## 화면 (14개, 해시 라우팅)
 
 | 경로 | 화면 | 핵심 인터랙션 |
 |---|---|---|
-| `#` | A 랜딩 | 인생 지도 미리보기(10년 띠 선택), 실제 리포트 샘플 |
+| `#` | A 랜딩 | 고민 입력창, 인생 지도 미리보기(10년 띠 선택), 실제 리포트 샘플 |
+| `#ask` | 고민상담소 | 고민 글 + 탭 답변 → 상담지(전통 해석/현실 조언 분리), 반응 저장, 심층 상담(AI 풀이·추가 질문, 데모 결제) |
+| `#decide` | 결정 리포트 | 12개월 주제 달력(월운), 단계와 맞물리는 달, 현실 확인 목록, 24개월 단계별 흐름·후보 비교(데모 결제) |
+| `#feedback` | 베타 의견 | 지불 의사 설문 + 행동 신호, 복사해서 보내기 / 자동 저장 |
 | `#start` | B 출생정보 입력 | 6단계, 날짜·윤달 검증, 시간 모름, 도시, 성별 용도 안내, 계산 기준, 미리보기 |
 | `#me` | C 인생 캐릭터 | 핵심 문장, 세 이야기 탭, 강점/갈등, 근거 펼쳐보기, 전문가 보기, 공유 카드 |
 | `#map` | D 0~90세 인생 지도 | 10년 띠, 91칸 연도 리본, 나이 슬라이더, 변화 지점, 내 기록 vs 전통 해석 |
@@ -61,6 +65,7 @@ docs/           설계 문서
 | 8 | 유료 상품 구조 | [docs/01 §2, §7](docs/01-product-strategy.md) |
 | 9 | 상용화 로드맵 | [docs/01 §8](docs/01-product-strategy.md) |
 | 10 | 기술 부채·위험 목록 | [docs/06-risks-and-tech-debt.md](docs/06-risks-and-tech-debt.md) |
+| + | 고민상담소 설계 | [docs/07-counsel-design.md](docs/07-counsel-design.md) |
 
 ## 테스트 사용자 계산 결과 (미검증)
 

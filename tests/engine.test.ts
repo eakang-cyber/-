@@ -131,3 +131,21 @@ describe("음력·윤달·입력 검증", () => {
     expect(computeChart({ ...base, sex: "unspecified" }).luck.direction).toBeNull();
   });
 });
+
+describe("월운", () => {
+  it("lunar-javascript 월간지와 2000~2030 각 달 일치", async () => {
+    const { monthPeriods } = await import("@/engine/chart");
+    const ms = monthPeriods(2000, 1, 12 * 31);
+    for (const p of ms) {
+      const lib = Solar.fromYmdHms(p.y, p.m, 20, 12, 0, 0).getLunar().getMonthInGanZhiExact();
+      expect(ganzhiHanja(p.stem, p.branch)).toBe(lib);
+    }
+  });
+  it("2026년 3월 = 辛卯, 2027년 1월 = 辛丑(입춘 전이라 전년 기준)", async () => {
+    const { monthPeriods } = await import("@/engine/chart");
+    const [mar] = monthPeriods(2026, 3, 1);
+    const [jan] = monthPeriods(2027, 1, 1);
+    expect(ganzhiHanja(mar.stem, mar.branch)).toBe("辛卯");
+    expect(ganzhiHanja(jan.stem, jan.branch)).toBe("辛丑");
+  });
+});

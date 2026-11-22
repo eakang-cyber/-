@@ -16,15 +16,19 @@ import { Report } from "@/screens/Report";
 import { Archive } from "@/screens/Archive";
 import { Method } from "@/screens/Method";
 import { Feedback } from "@/screens/Feedback";
+import { Counsel } from "@/screens/Counsel";
+import { Decision } from "@/screens/Decision";
 
 const MAIN_NAV: { route: Route; label: string; icon: keyof typeof Icon }[] = [
+  { route: "ask", label: "고민상담", icon: "ask" },
   { route: "me", label: "나", icon: "me" },
   { route: "map", label: "인생 지도", icon: "map" },
   { route: "work", label: "일·돈", icon: "work" },
   { route: "relation", label: "관계", icon: "relation" },
-  { route: "lab", label: "실험실", icon: "lab" },
 ];
 const SUB_NAV: { route: Route; label: string; icon: keyof typeof Icon }[] = [
+  { route: "decide", label: "결정 리포트", icon: "lab" },
+  { route: "lab", label: "선택 실험실", icon: "lab" },
   { route: "archive", label: "인생 아카이브", icon: "archive" },
   { route: "report", label: "마스터 리포트", icon: "report" },
   { route: "method", label: "계산 기준과 근거", icon: "method" },
@@ -65,6 +69,8 @@ function Screen({ route }: { route: Route }) {
     case "archive": return <Archive />;
     case "method": return <Method />;
     case "feedback": return <Feedback />;
+    case "ask": return <Counsel />;
+    case "decide": return <Decision />;
   }
 }
 
@@ -78,7 +84,7 @@ function Shell() {
   useEffect(() => {
     const t: Record<Route, string> = {
       landing: "운명OS", start: "출생 정보 입력", me: "나의 인생 캐릭터", map: "0~90세 인생 지도", work: "돈과 일의 지도",
-      relation: "관계 시뮬레이터", lab: "인생 선택 실험실", premium: "인생 마스터 리포트", report: "마스터 리포트", archive: "인생 아카이브", method: "계산 기준과 근거", feedback: "의견 보내기",
+      relation: "관계 시뮬레이터", lab: "인생 선택 실험실", premium: "인생 마스터 리포트", report: "마스터 리포트", archive: "인생 아카이브", method: "계산 기준과 근거", feedback: "의견 보내기", ask: "고민상담소", decide: "결정 리포트",
     };
     document.title = `${t[route]} · DESTINY OS`;
   }, [route]);

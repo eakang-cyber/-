@@ -10,7 +10,7 @@ import { Badge, Button, Field, Notice, Segmented, cx } from "@/ui/kit";
 import { Page, ScreenTitle } from "@/ui/layout";
 
 const SCREEN_LABEL: Record<string, string> = {
-  me: "인생 캐릭터", map: "인생 지도", work: "돈과 일", relation: "관계", lab: "선택 실험실",
+  ask: "고민상담소", decide: "결정 리포트", me: "인생 캐릭터", map: "인생 지도", work: "돈과 일", relation: "관계", lab: "선택 실험실",
   archive: "아카이브", report: "마스터 리포트", premium: "가격 화면", method: "계산 기준",
 };
 
@@ -20,6 +20,7 @@ const Q = {
   pay: { label: "이 리포트가 실제로 9,900원이라면?", options: ["바로 결제할 것 같다", "할인·이벤트가 있으면 결제", "무료 부분만 쓸 것 같다", "쓰지 않을 것 같다"] },
   price: { label: "내가 낼 만하다고 느끼는 가격은?", options: ["0원", "3,900원", "9,900원", "19,900원", "29,000원 이상"] },
   back: { label: "한 달 뒤에 다시 들어올 것 같나요?", options: ["예", "아마도", "아니요"] },
+  counsel: { label: "고민 1건을 심층 상담받는다면 얼마까지 낼 수 있나요?", options: ["0원", "4,900원", "9,900원", "19,900원", "29,000원 이상"] },
 } as const;
 type Key = keyof typeof Q;
 
@@ -63,7 +64,9 @@ export function Feedback() {
     ...(Object.keys(Q) as Key[]).map((k) => `- ${Q[k].label} ${a[k] ?? "(무응답)"}`),
     `- 바라는 점: ${wish.trim() || "(없음)"}`,
     `- 둘러본 화면(${visited.length}): ${visited.join(", ") || "없음"}`,
-    `- 모의 결제 버튼 누름: ${state.beta.purchaseClicked ? "예" : "아니요"}`,
+    `- 마스터 리포트(9,900원) 모의 결제 누름: ${state.beta.purchaseClicked ? "예" : "아니요"}`,
+    `- 심층 상담 표시 가격: ${state.beta.priceVariant ? state.beta.priceVariant.toLocaleString("ko-KR") + "원" : "-"} / 모의 결제 누름: ${state.beta.decisionClicked ? "예" : "아니요"}`,
+    `- 고민 분야: ${state.counsel.topic ?? "(상담 안 함)"} / 상담지 반응: ${state.counselReaction ?? "(없음)"}`,
     `- 내 생년월일로 봤나: ${state.profileIsSample ? "아니요(예시 인물로만 봄)" : "예"}`,
   ].join("\n");
 
@@ -74,6 +77,7 @@ export function Feedback() {
       v: 1, at: new Date().toISOString(),
       answers: a, wish: wish.trim().slice(0, 600),
       visited: state.beta.visited, purchaseClicked: state.beta.purchaseClicked, ownProfile: !state.profileIsSample,
+      priceVariant: state.beta.priceVariant, deepClicked: state.beta.decisionClicked, counselTopic: state.counsel.topic, counselReaction: state.counselReaction,
     });
     setSave(res);
   };
@@ -89,7 +93,7 @@ export function Feedback() {
         desc="이 서비스가 실제로 돈을 내고 쓸 만한지 판단하는 데 쓰입니다. 솔직할수록 도움이 됩니다." />
 
       <Notice title="함께 담기는 정보">
-        답변과 함께 <b className="text-ivory">둘러본 화면 목록, 모의 결제 버튼을 눌렀는지, 내 생년월일로 봤는지</b>만 담깁니다. 이름과 출생 정보는 담지 않습니다.
+        답변과 함께 <b className="text-ivory">둘러본 화면, 모의 결제 버튼을 눌렀는지와 그때 본 가격, 고민 분야와 상담지 반응, 내 생년월일로 봤는지</b>만 담깁니다. 이름, 출생 정보, 고민 글 내용은 담지 않습니다.
       </Notice>
 
       {!done ? (
@@ -107,7 +111,7 @@ export function Feedback() {
           </Field>
           <div className="flex flex-wrap items-center gap-3">
             <Button onClick={submit} disabled={!ready}>의견 정리하기</Button>
-            <span className="text-[0.8rem] text-faint">{ready ? `${answered}/5 답함` : `3개 이상 답해 주세요 (${answered}/5)`}</span>
+            <span className="text-[0.8rem] text-faint">{ready ? `${answered}/6 답함` : `3개 이상 답해 주세요 (${answered}/6)`}</span>
           </div>
           {visited.length < 2 && (
             <p className="text-[0.82rem] text-mist">아직 둘러본 화면이 적어요. <button className="text-gold underline underline-offset-4 cursor-pointer" onClick={() => go(state.profileIsSample ? "start" : "map")}>{state.profileIsSample ? "내 생년월일로 먼저 보기" : "인생 지도 보기"}</button></p>

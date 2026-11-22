@@ -306,3 +306,32 @@ export function luckPeriodAt(chart: ChartResult, year: number): LuckPeriod | nul
 export function ageInYear(chart: ChartResult, year: number) {
   return year - chart.solarDate.y; // 그 해 생일 이후의 만 나이
 }
+
+// ---------- 월운(月運): 절기 기준 한 달 단위 간지 ----------
+
+export interface MonthPeriod {
+  /** 이 기간이 주로 걸치는 양력 연·월(절 입절일이 있는 달) */
+  y: number; m: number;
+  stem: number; branch: number;
+  startUtcMs: number; // 절 입절 순간
+  endUtcMs: number;   // 다음 절 입절 순간
+}
+
+/** 양력 (y, m)부터 count 개월의 월운. 각 달의 절(節) 이후 기간을 그 달의 월주로 본다. */
+export function monthPeriods(y: number, m: number, count: number): MonthPeriod[] {
+  const out: MonthPeriod[] = [];
+  for (let i = 0; i < count; i++) {
+    const yy = y + Math.floor((m - 1 + i) / 12);
+    const mm = ((m - 1 + i) % 12) + 1;
+    // 매월 20일은 그 달 절(4~8일) 이후이고 다음 달 절 이전이다.
+    const probe = Date.UTC(yy, mm - 1, 20, 3);
+    const { prev, next } = jieAround(probe);
+    const branch = JIE_TO_BRANCH[prev.name];
+    const sajuYear = sajuYearOf(probe, prev.name, prev.utcMs);
+    const yStem = yearPillarIndex(sajuYear) % 10;
+    const tigerStem = ((yStem % 5) * 2 + 2) % 10;
+    const stem = (tigerStem + ((branch - 2 + 12) % 12)) % 10;
+    out.push({ y: yy, m: mm, stem, branch, startUtcMs: prev.utcMs, endUtcMs: next.utcMs });
+  }
+  return out;
+}

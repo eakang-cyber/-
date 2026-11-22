@@ -8,6 +8,7 @@ import { Icon } from "@/ui/icons";
 import { buildCharacter, buildDecades, buildYears, yearBlock } from "@/rules/interpret";
 import { GROUP_COLOR, GROUP_LABEL } from "@/engine/constants";
 import { j } from "@/rules/josa";
+import { guessTopic } from "@/rules/counsel";
 
 const NOW = new Date().getFullYear();
 
@@ -21,6 +22,14 @@ export function Landing() {
   const shown = decades.find((d) => d.index === (sel ?? currentIdx));
   const yearCell = useMemo(() => buildYears(chart).find((y) => y.year === NOW), [chart]);
   const name = subject.name || "나";
+  const { dispatch } = useStore();
+  const [worry, setWorry] = useState(state.counsel.text);
+  const startCounsel = () => {
+    if (worry.trim().length < 6) return;
+    dispatch({ type: "setCounsel", patch: { text: worry.trim(), topic: guessTopic(worry) } });
+    dispatch({ type: "submitCounsel", value: false });
+    if (state.profileIsSample) { dispatch({ type: "setReturnTo", value: "ask" }); go("start"); } else go("ask");
+  };
 
   return (
     <div>
@@ -68,6 +77,25 @@ export function Landing() {
             )}
             {sel === 0 && <p className="mt-3 text-[0.82rem] text-mist">10년 흐름이 시작되기 전 구간입니다. 이 시기는 태어난 달의 기운으로 읽습니다.</p>}
             <button onClick={() => go("map")} className="mt-4 text-[0.88rem] text-gold hover:underline underline-offset-4 cursor-pointer">연도별로 펼쳐 보기 →</button>
+          </div>
+        </div>
+      </section>
+
+      {/* 고민상담소 진입 */}
+      <section className="border-b border-line/50 bg-deep/40">
+        <div className="gutter mx-auto max-w-6xl py-12 lg:py-16 grid lg:grid-cols-[0.9fr_1.1fr] gap-8 items-start">
+          <div>
+            <p className="eyebrow">고민상담소</p>
+            <h2 className="mt-3 font-display text-[1.6rem] lg:text-[2rem] font-semibold leading-snug">지금 고민을 내 말로 적어 보세요</h2>
+            <p className="mt-3 text-mist leading-relaxed">이직, 돈, 부동산, 연애, 가족. 상황을 적고 몇 가지만 누르면, 내 사주의 구조와 앞으로 12개월의 흐름에 비춘 상담지를 받습니다. 대신 결정하지 않고, 무엇을 확인할지 함께 정리합니다.</p>
+          </div>
+          <div className="rounded-3xl border border-line/80 bg-deep p-5 flex flex-col gap-3">
+            <label htmlFor="landing-worry" className="text-[0.85rem] text-mist">지금 어떤 고민이 있나요?</label>
+            <textarea id="landing-worry" rows={4} maxLength={600} value={worry} onChange={(e) => setWorry(e.target.value)}
+              placeholder="예: 대전 신탄진에 공장 부지를 사려고 하는데, 지금 움직여도 될지 모르겠어요."
+              className="w-full rounded-xl bg-night border border-line px-4 py-3 text-ivory placeholder:text-faint focus:border-gold/70 outline-none leading-relaxed" />
+            <Button onClick={startCounsel} disabled={worry.trim().length < 6}>{state.profileIsSample ? "생년월일 넣고 상담지 받기" : "상담지 받기"} <Icon.arrow /></Button>
+            <p className="text-[0.75rem] text-faint">고민 글은 이 브라우저 밖으로 나가지 않습니다. 무료 상담지는 결제 없이 끝까지 볼 수 있어요.</p>
           </div>
         </div>
       </section>

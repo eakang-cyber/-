@@ -78,7 +78,9 @@ export function Onboarding() {
     const input = toInput(d);
     dispatch({ type: "setProfile", profile: input, isSample: false });
     toast("계산을 마쳤습니다");
-    go("me");
+    const back = state.returnTo;
+    dispatch({ type: "setReturnTo", value: null });
+    go((back as Parameters<typeof go>[0]) ?? "me");
   };
 
   return (

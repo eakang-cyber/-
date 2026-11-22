@@ -4,12 +4,26 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef } from "react";
 import { BirthInput, CalcPolicy, DEFAULT_POLICY, computeChart, ChartResult } from "@/engine/chart";
 import type { Interest } from "@/rules/content";
+import type { DecisionType } from "@/rules/decision";
+import type { CounselInput } from "@/rules/counsel";
 import { SAMPLE_PARTNER, SAMPLE_PROFILE, SAMPLE_RECORDS, SAMPLE_CHOICE, ArchiveRecord, ChoiceInput } from "@/content/sample";
 
 export type RelationType = "연인·배우자" | "친구" | "동료" | "가족";
 export type SaveMode = "memory" | "session";
 
 export interface PersonalQuestion { id: string; q: string; createdAt: string }
+
+export interface DecisionDraft {
+  text: string;          // "대전 신탄진 공장 부지 매입"
+  type: DecisionType | null;
+  phase: string | null;  // 지금 단계
+  place: string;         // 후보지·대상(선택)
+  budget: string;        // 예산·조건(선택)
+  optionA: string;       // 후보 A (리포트: 비교)
+  optionB: string;
+}
+/** 가격 테스트: 결정 리포트 표시가(원). 방문자마다 무작위 배정 */
+export const PRICE_VARIANTS = [19900, 29000, 39000] as const;
 
 export interface State {
   profile: BirthInput | null;
@@ -26,7 +40,13 @@ export interface State {
   choice: ChoiceInput;
   saveMode: SaveMode;
   /** 베타 테스트 행동 신호 — 출생 정보·이름은 담지 않는다 */
-  beta: { visited: string[]; purchaseClicked: boolean };
+  beta: { visited: string[]; purchaseClicked: boolean; priceVariant: number | null; decisionClicked: boolean };
+  decision: DecisionDraft;
+  decisionUnlocked: boolean; // 데모 결제(심층 상담·결정 리포트 공통)
+  counsel: CounselInput;
+  counselSubmitted: boolean;
+  counselReaction: string | null;
+  returnTo: string | null;   // 출생정보 입력 후 돌아갈 화면
 }
 
 const initial: State = {
@@ -43,7 +63,13 @@ const initial: State = {
   questions: [],
   choice: SAMPLE_CHOICE,
   saveMode: "memory",
-  beta: { visited: [], purchaseClicked: false },
+  beta: { visited: [], purchaseClicked: false, priceVariant: null, decisionClicked: false },
+  decision: { text: "", type: null, phase: null, place: "", budget: "", optionA: "", optionB: "" },
+  decisionUnlocked: false,
+  counsel: { text: "", topic: null, deadline: null, feeling: null, concern: null, optionA: "", optionB: "" },
+  counselSubmitted: false,
+  counselReaction: null,
+  returnTo: null,
 };
 
 type Action =
@@ -63,6 +89,13 @@ type Action =
   | { type: "setSaveMode"; value: SaveMode }
   | { type: "visit"; route: string }
   | { type: "betaPurchaseClick" }
+  | { type: "setPriceVariant"; value: number }
+  | { type: "setDecision"; patch: Partial<DecisionDraft> }
+  | { type: "unlockDecision"; value: boolean }
+  | { type: "setReturnTo"; value: string | null }
+  | { type: "setCounsel"; patch: Partial<CounselInput> }
+  | { type: "submitCounsel"; value: boolean }
+  | { type: "reactCounsel"; value: string }
   | { type: "resetAll" }
   | { type: "hydrate"; state: State };
 
@@ -88,6 +121,13 @@ function reducer(s: State, a: Action): State {
     case "setSaveMode": return { ...s, saveMode: a.value };
     case "visit": return s.beta.visited.includes(a.route) ? s : { ...s, beta: { ...s.beta, visited: [...s.beta.visited, a.route] } };
     case "betaPurchaseClick": return { ...s, beta: { ...s.beta, purchaseClicked: true } };
+    case "setPriceVariant": return { ...s, beta: { ...s.beta, priceVariant: a.value } };
+    case "setDecision": return { ...s, decision: { ...s.decision, ...a.patch } };
+    case "unlockDecision": return { ...s, decisionUnlocked: a.value, beta: a.value ? { ...s.beta, decisionClicked: true } : s.beta };
+    case "setReturnTo": return { ...s, returnTo: a.value };
+    case "setCounsel": return { ...s, counsel: { ...s.counsel, ...a.patch } };
+    case "submitCounsel": return { ...s, counselSubmitted: a.value };
+    case "reactCounsel": return { ...s, counselReaction: a.value };
     case "resetAll": return { ...initial };
     case "hydrate": return a.state;
   }
@@ -120,6 +160,11 @@ export function StoreProvider({ children, onToast }: { children: React.ReactNode
       if (raw) dispatch({ type: "hydrate", state: { ...initial, ...JSON.parse(raw) } });
     } catch { /* 저장소 차단 환경에서도 정상 동작 */ }
   }, []);
+
+  // 가격 테스트 변형 배정(클라이언트에서만 — 서버 렌더와 어긋나지 않도록)
+  useEffect(() => {
+    if (state.beta.priceVariant === null) dispatch({ type: "setPriceVariant", value: PRICE_VARIANTS[Math.floor(Math.random() * PRICE_VARIANTS.length)] });
+  }, [state.beta.priceVariant]);
 
   useEffect(() => {
     try {

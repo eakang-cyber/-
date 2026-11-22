@@ -9,6 +9,7 @@ export const Icon = {
   archive: () => (<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden {...P}><rect x="3.5" y="4" width="17" height="5" rx="1.5" /><path d="M5 9v9.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V9M10 13h4" /></svg>),
   report: () => (<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden {...P}><path d="M6 3.5h9l4 4V20a.5.5 0 0 1-.5.5h-12.5a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z" /><path d="M14.5 3.5V8h4.5M8.5 12.5h7M8.5 16h5" /></svg>),
   method: () => (<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden {...P}><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>),
+  ask: () => (<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden {...P}><path d="M5 4.5h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-7l-4.5 3.5v-3.5H5a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1z" /><path d="M9.5 9.2a2.5 2.5 0 1 1 3.3 2.4c-.5.2-.8.6-.8 1.1v.3M12 14.6h.01" /></svg>),
   menu: () => (<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden {...P}><path d="M4 7h16M4 12h16M4 17h10" /></svg>),
   close: () => (<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden {...P}><path d="M6 6l12 12M18 6 6 18" /></svg>),
   arrow: () => (<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden {...P}><path d="M5 12h14M13 6l6 6-6 6" /></svg>),

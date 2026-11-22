@@ -59,7 +59,7 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
   await p.getByRole('button', { name: '의견 정리하기' }).click();
   await p.getByRole('button', { name: '글로 보기' }).click();
   const fb = await p.getByLabel('의견 요약').inputValue();
-  ok(fb.includes('모의 결제 버튼 누름: 예') && fb.includes('내 생년월일로 봤나: 예') && !fb.includes('1990'), 'feedback summary has signals, no birth data');
+  ok(fb.includes('마스터 리포트(9,900원) 모의 결제 누름: 예') && fb.includes('내 생년월일로 봤나: 예') && !fb.includes('1990'), 'feedback summary has signals, no birth data');
   console.log('errors', JSON.stringify(errs));
   await b.close();
 })().catch(e => { console.log('CRASH', e.message); process.exit(1); });
