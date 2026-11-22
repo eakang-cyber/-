@@ -140,13 +140,22 @@ export function Archive() {
     records,
   }, null, 2);
 
-  const download = () => {
+  const download = async () => {
+    const filename = `destiny-os-archive-${new Date().toISOString().slice(0, 10)}.json`;
+    // claude.ai 아티팩트 뷰어 안에서는 downloads 권한으로 저장한다(일반 링크 다운로드는 막혀 있음).
+    const c = (window as unknown as { claude?: { use?: (n: string) => Promise<unknown> } }).claude;
+    if (c?.use) {
+      try {
+        const dl = (await Promise.race([c.use("downloads"), new Promise((r) => setTimeout(() => r(null), 5000))])) as { save: (r: { filename: string; data: string }) => Promise<unknown> } | null;
+        if (dl) { await dl.save({ filename, data: exportJson() }); return; }
+      } catch { setJsonOut(exportJson()); return; }
+    }
     try {
       const blob = new Blob([exportJson()], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `destiny-os-archive-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();

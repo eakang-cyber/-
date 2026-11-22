@@ -40,6 +40,7 @@ export function Premium() {
   const pay = () => {
     if (!agree || phase === "processing") return;
     setPhase("processing");
+    dispatch({ type: "betaPurchaseClick" }); // 베타: '결제하려 했다'는 행동 신호
     setTimeout(() => {
       dispatch({ type: "setPremium", value: true });
       toast("데모 결제 완료 — 실제 청구는 없습니다");

@@ -20,7 +20,7 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
   await p.waitForTimeout(400);
   ok(p.url().endsWith('#me'), 'navigated to #me');
   ok(await p.getByText('민지님을 설명하는 첫 문장').isVisible(), 'character for new user');
-  ok(!(await p.getByText('테스트 사용자 강윤규').isVisible().catch(()=>false)), 'sample banner hidden for own profile');
+  ok(!(await p.getByText(/가상의 예시 인물/).first().isVisible().catch(()=>false)), 'example banner hidden for own profile');
   // story tabs
   await p.getByRole('tab').nth(2).click(); ok(await p.getByRole('tab').nth(2).getAttribute('aria-selected') === 'true', 'story tab switch');
   // map
@@ -49,6 +49,17 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
   await p.getByText('이 기록을 삭제할까요?').locator('..').getByRole('button', { name: '삭제', exact: true }).click(); await p.waitForTimeout(200);
   const after = await p.getByRole('button', { name: '삭제', exact: true }).count();
   ok(after === before - 1, `archive delete (${before} -> ${after})`);
+  // 내 정보 입력 후 예시 기록이 섞이지 않는다
+  ok(!(await p.getByText('첫 독립 생활 시작').isVisible().catch(()=>false)), 'example records removed for own profile');
+  // 베타 피드백
+  await p.goto(BASE + '/#feedback'); await p.waitForTimeout(300);
+  await p.getByRole('radio', { name: '4' }).first().click();
+  await p.getByRole('radio', { name: '인생 지도' }).click();
+  await p.getByRole('radio', { name: '할인·이벤트가 있으면 결제' }).click();
+  await p.getByRole('button', { name: '의견 정리하기' }).click();
+  await p.getByRole('button', { name: '글로 보기' }).click();
+  const fb = await p.getByLabel('의견 요약').inputValue();
+  ok(fb.includes('모의 결제 버튼 누름: 예') && fb.includes('내 생년월일로 봤나: 예') && !fb.includes('1990'), 'feedback summary has signals, no birth data');
   console.log('errors', JSON.stringify(errs));
   await b.close();
 })().catch(e => { console.log('CRASH', e.message); process.exit(1); });

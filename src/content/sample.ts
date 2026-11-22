@@ -1,16 +1,16 @@
-// 데모 데이터. 화면에는 항상 '샘플' 또는 '예시'로 표시한다.
-// 강윤규 님의 출생정보는 요청서에 명시된 테스트 입력값만 사용하며,
-// 직업·성격·목표 등 출생정보 밖의 사실은 사주가 맞힌 것처럼 쓰지 않는다. 아래 기록은 모두 가상의 예시다.
+// 데모 데이터. 화면에는 항상 '예시'로 표시한다.
+// 실존 인물의 정보를 쓰지 않는다. 아래 예시 인물·기록은 모두 가상이다.
+// 사용자가 자기 정보를 입력하면 예시 기록은 지워지고(store.setProfile) 그 사람의 계산으로 바뀐다.
 import type { BirthInput } from "@/engine/chart";
 
 export const SAMPLE_PROFILE: BirthInput = {
-  name: "강윤규",
+  name: "예시 인물",
   calendar: "solar",
-  year: 1996, month: 3, day: 27,
+  year: 1992, month: 10, day: 8,
   isLeapMonth: false,
-  timeKnown: true, hour: 9, minute: 58,
+  timeKnown: true, hour: 8, minute: 10,
   cityId: "seoul",
-  sex: "male",
+  sex: "female",
 };
 
 export const SAMPLE_PARTNER: BirthInput = {

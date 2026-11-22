@@ -12,7 +12,7 @@ import {
 import { pillarLabel } from "@/engine/chart";
 
 export function Character() {
-  const { chart, subject, toast } = useStore();
+  const { chart, subject, toast, state } = useStore();
   const { go } = useRouter();
   const c = useMemo(() => buildCharacter(chart), [chart]);
   const [tab, setTab] = useState(0);
@@ -34,7 +34,7 @@ export function Character() {
   return (
     <Page>
       <SampleBanner />
-      <ScreenTitle eyebrow="나의 인생 캐릭터" title={`${name}님을 설명하는 첫 문장`}>
+      <ScreenTitle eyebrow="나의 인생 캐릭터" title={state.profileIsSample ? "예시 인물을 설명하는 첫 문장" : `${name}님을 설명하는 첫 문장`}>
         <CalcStatus />
       </ScreenTitle>
 

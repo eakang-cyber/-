@@ -20,7 +20,7 @@ export function ScreenTitle({ eyebrow, title, desc, children }: { eyebrow: strin
   );
 }
 
-/** 샘플 사용자로 보고 있음을 항상 알린다 */
+/** 예시 인물로 보고 있음을 항상 알린다 */
 export function SampleBanner() {
   const { state, subject } = useStore();
   const { go } = useRouter();
@@ -29,9 +29,9 @@ export function SampleBanner() {
     <div className="flex flex-wrap items-center gap-3 rounded-xl border border-warn/40 bg-warn/5 px-4 py-3">
       <Badge layer="sample" />
       <p className="text-[0.85rem] text-ivory/90 flex-1 min-w-[12rem]">
-        테스트 사용자 <b className="font-medium">{subject.name}</b>님의 출생 정보(1996.03.27 09:58 서울)로 계산한 결과입니다.
+        가상의 <b className="font-medium">예시 인물</b>({subject.year}.{String(subject.month).padStart(2, "0")}.{String(subject.day).padStart(2, "0")} {String(subject.hour).padStart(2, "0")}:{String(subject.minute).padStart(2, "0")} 출생)로 계산한 화면입니다. 생년월일을 넣으면 내 이야기로 바뀝니다.
       </p>
-      <Button size="sm" variant="ghost" onClick={() => go("start")}>내 정보로 보기</Button>
+      <Button size="sm" onClick={() => go("start")}>내 정보 넣기</Button>
     </div>
   );
 }

@@ -7,7 +7,6 @@ import { BirthInput, InputError, computeChart, lunarToSolar } from "@/engine/cha
 import { CITIES, cityById } from "@/engine/cities";
 import { isValidSolarDate, fmtWall, pad2 } from "@/engine/time";
 import { BRANCHES_KO, ELEMENT_KO, STEMS_KO, stemElement, branchElement } from "@/engine/constants";
-import { SAMPLE_PROFILE } from "@/content/sample";
 import { Icon } from "@/ui/icons";
 
 const STEPS = ["이름", "생년월일", "출생시간", "출생 도시", "계산 기준", "확인"] as const;
@@ -77,14 +76,9 @@ export function Onboarding() {
   const finish = () => {
     if (!preview?.chart) return;
     const input = toInput(d);
-    dispatch({ type: "setProfile", profile: input, isSample: JSON.stringify(input) === JSON.stringify(SAMPLE_PROFILE) });
+    dispatch({ type: "setProfile", profile: input, isSample: false });
     toast("계산을 마쳤습니다");
     go("me");
-  };
-  const useSample = () => {
-    setD(fromInput(SAMPLE_PROFILE));
-    dispatch({ type: "setProfile", profile: SAMPLE_PROFILE, isSample: true });
-    setStep(STEPS.length - 1);
   };
 
   return (
@@ -93,7 +87,7 @@ export function Onboarding() {
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between text-[0.8rem] text-faint">
           <span className="tabular">{step + 1} / {STEPS.length} · {STEPS[step]}</span>
-          <button onClick={useSample} className="text-mist hover:text-gold cursor-pointer">테스트 사용자로 채우기</button>
+          <button onClick={() => go("me")} className="text-mist hover:text-gold cursor-pointer">예시로 먼저 둘러보기</button>
         </div>
         <div className="flex gap-1" aria-hidden>
           {STEPS.map((s, i) => <span key={s} className={cx("h-1 flex-1 rounded-full", i <= step ? "bg-gold" : "bg-line")} />)}
@@ -123,7 +117,7 @@ export function Onboarding() {
           <Field label="생년월일" error={touched || (d.year && d.month && d.day) ? dErr : null}
             hint={d.calendar === "lunar" ? "음력은 계산 라이브러리 기준으로 양력으로 바꿉니다. 한국 음력과 드물게 하루 차이가 날 수 있어 '미검증'으로 표시합니다." : "1901년부터 2050년까지 계산할 수 있습니다."}>
             <div className="grid grid-cols-[1.3fr_1fr_1fr] gap-2">
-              <input aria-label="연도" className={inputCls} inputMode="numeric" placeholder="1996" maxLength={4} value={d.year} onChange={(e) => set({ year: e.target.value.replace(/\D/g, "") })} />
+              <input aria-label="연도" className={inputCls} inputMode="numeric" placeholder="1990" maxLength={4} value={d.year} onChange={(e) => set({ year: e.target.value.replace(/\D/g, "") })} />
               <input aria-label="월" className={inputCls} inputMode="numeric" placeholder="월" maxLength={2} value={d.month} onChange={(e) => set({ month: e.target.value.replace(/\D/g, "") })} />
               <input aria-label="일" className={inputCls} inputMode="numeric" placeholder="일" maxLength={2} value={d.day} onChange={(e) => set({ day: e.target.value.replace(/\D/g, "") })} />
             </div>

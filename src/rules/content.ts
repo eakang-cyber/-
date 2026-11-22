@@ -38,7 +38,7 @@ export interface GroupText {
 
 export const GROUP_TEXT: Record<ThemeGroup, GroupText> = {
   self: {
-    coreTail: "그 물길이 자기 기준을 지키는 쪽으로 흐르는 이야기",
+    coreTail: "그 힘이 자기 기준을 지키는 쪽으로 향하는 이야기",
     storyTitle: "내 기준으로 서 보려는 이야기",
     storyBody: "나와 같은 기운이 여럿 보이면 전통 해석은 자기 기준, 독립, 그리고 동료·경쟁자와의 관계를 삶의 중요한 장면으로 읽습니다.",
     strength: "혼자 결정하고 끝까지 책임져야 하는 순간",
@@ -52,7 +52,7 @@ export const GROUP_TEXT: Record<ThemeGroup, GroupText> = {
     role: ["독립 실행가", "공동 창업자·파트너", "현장을 이끄는 실무 리더"],
   },
   create: {
-    coreTail: "그 물길이 무언가를 만들어 내보내는 쪽으로 흐르는 이야기",
+    coreTail: "그 힘이 무언가를 만들어 내보내는 쪽으로 향하는 이야기",
     storyTitle: "만들어 내보내는 이야기",
     storyBody: "생각을 결과물·말·작업으로 꺼내는 기운입니다. 전통 해석은 이 기운을 표현력, 생산력, 기술로 읽습니다.",
     strength: "아이디어를 손에 잡히는 결과물로 바꿔야 할 때, 무언가를 설명하거나 가르칠 때",
@@ -66,7 +66,7 @@ export const GROUP_TEXT: Record<ThemeGroup, GroupText> = {
     role: ["기획·제작자", "콘텐츠·제품 메이커", "설명하고 가르치는 사람"],
   },
   result: {
-    coreTail: "그 물길이 손에 잡히는 결과를 향해 흐르는 이야기",
+    coreTail: "그 힘이 손에 잡히는 결과를 향하는 이야기",
     storyTitle: "손에 잡히는 결과를 향하는 이야기",
     storyBody: "일간이 다스리는 기운으로, 전통 해석은 현실 감각, 자원, 성과, 재물을 다루는 주제로 읽습니다.",
     strength: "목표가 숫자나 결과물로 분명하게 보이는 일",
@@ -80,7 +80,7 @@ export const GROUP_TEXT: Record<ThemeGroup, GroupText> = {
     role: ["운영·사업 관리자", "영업·거래를 만드는 사람", "자원을 배분하는 사람"],
   },
   structure: {
-    coreTail: "그 물길이 역할과 책임의 틀 안에서 흐르는 이야기",
+    coreTail: "그 힘이 역할과 책임의 틀 안에서 쓰이는 이야기",
     storyTitle: "역할과 책임을 다루는 이야기",
     storyBody: "일간을 다스리는 기운으로, 전통 해석은 규칙, 조직, 직함, 평판, 그리고 압박을 다루는 주제로 읽습니다.",
     strength: "기준이 분명한 조직, 책임이 명확하게 주어진 자리",
@@ -94,7 +94,7 @@ export const GROUP_TEXT: Record<ThemeGroup, GroupText> = {
     role: ["조직 관리자", "규칙과 품질을 지키는 사람", "공공·제도 영역의 실무자"],
   },
   learn: {
-    coreTail: "그 물길이 깊이 이해하고 정리하는 쪽으로 흐르는 이야기",
+    coreTail: "그 힘이 깊이 이해하고 정리하는 쪽으로 향하는 이야기",
     storyTitle: "이해한 뒤에 움직이는 이야기",
     storyBody: "일간을 돕는 기운으로, 전통 해석은 배움, 문서, 보호, 직관적 이해를 다루는 주제로 읽습니다.",
     strength: "복잡한 맥락을 파악하고 정리해야 할 때, 깊이 공부해야 할 때",

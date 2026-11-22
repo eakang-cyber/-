@@ -1,6 +1,10 @@
 // 강윤규 테스트 사용자 샘플 콘텐츠를 엔진에서 직접 생성해 Markdown으로 출력한다(문서와 코드의 불일치 방지).
 import { computeChart, DEFAULT_POLICY, TimeBasis } from "@/engine/chart";
-import { SAMPLE_PROFILE, SAMPLE_PARTNER } from "@/content/sample";
+import { SAMPLE_PARTNER } from "@/content/sample";
+import type { BirthInput } from "@/engine/chart";
+
+// docs/03 의 기준 사례(요청서의 테스트 입력값). 앱 화면에는 쓰지 않는다.
+const SAMPLE_PROFILE: BirthInput = { name: "", calendar: "solar", year: 1996, month: 3, day: 27, isLeapMonth: false, timeKnown: true, hour: 9, minute: 58, cityId: "seoul", sex: "male" };
 import { BRANCHES, GROUP_LABEL, STEMS, TEN_GOD_KO, ganzhiHanja, ganzhiKo } from "@/engine/constants";
 import { buildCharacter, buildDecades, buildPair, buildWork, buildYears, choiceThemes, yearBlock, pillarsFact } from "@/rules/interpret";
 import { fmtUtcAsKst, fmtWall } from "@/engine/time";

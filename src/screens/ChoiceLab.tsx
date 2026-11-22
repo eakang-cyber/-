@@ -149,7 +149,7 @@ export function ChoiceLab() {
             <Button className="self-start" onClick={() => { setEditing(false); toast("비교표에 반영했습니다."); }}>비교표 보기</Button>
           </div>
         )}
-        {state.choice === SAMPLE_CHOICE && <p className="text-[0.8rem] text-faint"><Badge layer="sample" className="mr-2" />아래 내용은 예시로 적어 둔 질문입니다. 강윤규 님이 실제로 입력한 고민이 아닙니다.</p>}
+        {state.choice === SAMPLE_CHOICE && <p className="text-[0.8rem] text-faint"><Badge layer="sample" className="mr-2" />아래 내용은 예시로 적어 둔 질문입니다. 내 고민으로 바꿔 보세요.</p>}
       </section>
 
       <section className="flex flex-col gap-4">

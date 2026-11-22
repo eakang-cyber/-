@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
-export const ROUTES = ["landing", "start", "me", "map", "work", "relation", "lab", "premium", "report", "archive", "method"] as const;
+export const ROUTES = ["landing", "start", "me", "map", "work", "relation", "lab", "premium", "report", "archive", "method", "feedback"] as const;
 export type Route = (typeof ROUTES)[number];
 
 const parse = (): Route => {

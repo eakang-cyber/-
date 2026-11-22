@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useStore } from "@/state/store";
 import { useRouter } from "@/ui/router";
 import { Page, SampleBanner } from "@/ui/layout";
+import { BetaCard } from "./Feedback";
 import { Badge, Button, Card, Notice, ReadingCard, SectionHead, Segmented, cx, inputCls } from "@/ui/kit";
 import {
   Block, buildCharacter, buildDecades, buildPair, buildWork, buildYears, choiceThemes, pillarsFact, yearBlock,
@@ -39,6 +40,7 @@ function ReportPreview() {
   return (
     <Page>
       <SampleBanner />
+      <BetaCard />
       <header className="flex flex-col gap-3">
         <p className="eyebrow">인생 마스터 리포트</p>
         <h1 className="font-display text-[1.75rem] lg:text-[2.1rem] leading-[1.3] font-semibold">리포트는 8개 챕터로 구성됩니다</h1>
@@ -103,6 +105,7 @@ function PremiumReport() {
   return (
     <Page wide>
       <SampleBanner />
+      <BetaCard />
       <header className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2"><Badge layer="demo" /><Badge layer="premium" /><Badge layer="unverified" /></div>
         <p className="eyebrow">인생 마스터 리포트</p>

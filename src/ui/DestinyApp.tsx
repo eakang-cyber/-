@@ -15,6 +15,7 @@ import { Premium } from "@/screens/Premium";
 import { Report } from "@/screens/Report";
 import { Archive } from "@/screens/Archive";
 import { Method } from "@/screens/Method";
+import { Feedback } from "@/screens/Feedback";
 
 const MAIN_NAV: { route: Route; label: string; icon: keyof typeof Icon }[] = [
   { route: "me", label: "나", icon: "me" },
@@ -27,6 +28,7 @@ const SUB_NAV: { route: Route; label: string; icon: keyof typeof Icon }[] = [
   { route: "archive", label: "인생 아카이브", icon: "archive" },
   { route: "report", label: "마스터 리포트", icon: "report" },
   { route: "method", label: "계산 기준과 근거", icon: "method" },
+  { route: "feedback", label: "의견 보내기", icon: "report" },
 ];
 
 export function DestinyApp() {
@@ -62,19 +64,21 @@ function Screen({ route }: { route: Route }) {
     case "report": return <Report />;
     case "archive": return <Archive />;
     case "method": return <Method />;
+    case "feedback": return <Feedback />;
   }
 }
 
 function Shell() {
   const { route, go } = useRouter();
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const [menu, setMenu] = useState(false);
+  useEffect(() => dispatch({ type: "visit", route }), [route, dispatch]);
   const bare = route === "landing" || route === "start";
   useEffect(() => setMenu(false), [route]);
   useEffect(() => {
     const t: Record<Route, string> = {
       landing: "운명OS", start: "출생 정보 입력", me: "나의 인생 캐릭터", map: "0~90세 인생 지도", work: "돈과 일의 지도",
-      relation: "관계 시뮬레이터", lab: "인생 선택 실험실", premium: "인생 마스터 리포트", report: "마스터 리포트", archive: "인생 아카이브", method: "계산 기준과 근거",
+      relation: "관계 시뮬레이터", lab: "인생 선택 실험실", premium: "인생 마스터 리포트", report: "마스터 리포트", archive: "인생 아카이브", method: "계산 기준과 근거", feedback: "의견 보내기",
     };
     document.title = `${t[route]} · DESTINY OS`;
   }, [route]);
@@ -96,7 +100,7 @@ function Shell() {
             </button>
           )}
           {bare ? (
-            <button onClick={() => go("me")} className="text-[0.85rem] text-mist hover:text-gold cursor-pointer">샘플 결과 보기</button>
+            <button onClick={() => go("me")} className="text-[0.85rem] text-mist hover:text-gold cursor-pointer">예시 둘러보기</button>
           ) : (
             <button onClick={() => setMenu(true)} className="lg:hidden h-10 w-10 grid place-items-center rounded-full text-mist hover:text-ivory cursor-pointer" aria-label="전체 메뉴 열기" aria-expanded={menu}>
               <Icon.menu />
@@ -181,7 +185,7 @@ function ProfileChip() {
     <button onClick={() => go("start")} className="rounded-xl border border-line/70 bg-deep px-3.5 py-3 text-left cursor-pointer hover:border-gold/50">
       <div className="flex items-center gap-2">
         <span className="text-[0.95rem] text-ivory font-medium">{subject.name || "나"}</span>
-        {state.profileIsSample && <span className="text-[0.68rem] text-warn border border-warn/50 rounded-full px-2">샘플</span>}
+        {state.profileIsSample && <span className="text-[0.68rem] text-warn border border-warn/50 rounded-full px-2">예시</span>}
       </div>
       <div className="text-[0.75rem] text-faint tabular mt-0.5">
         {chart.solarDate.y}.{String(chart.solarDate.m).padStart(2, "0")}.{String(chart.solarDate.d).padStart(2, "0")} · {subject.timeKnown ? `${String(subject.hour).padStart(2, "0")}:${String(subject.minute).padStart(2, "0")}` : "시간 미상"}

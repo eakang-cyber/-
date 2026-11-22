@@ -50,7 +50,7 @@ export function Method() {
     { name: "자시 경계(23시 날짜 변경 정책 2종)", auto: true },
     { name: "출생시간 미상(시주 제외·경고)", auto: true },
     { name: "시간대 변경(1988 서머타임, 1954~61 UTC+8:30)", auto: true },
-    { name: "1996-03-27 09:58 서울(세 기준 모두 丙子 辛卯 癸亥 丁巳)", auto: true },
+    { name: "시 경계 민감도(세 시간 기준 결과 비교)", auto: true },
   ];
 
   return (

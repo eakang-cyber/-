@@ -38,7 +38,7 @@ export function Landing() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button size="lg" onClick={() => go("start")}>무료로 내 인생 탐험하기 <Icon.arrow /></Button>
-              <Button size="lg" variant="ghost" onClick={() => go("me")}>샘플 결과 먼저 보기</Button>
+              <Button size="lg" variant="ghost" onClick={() => go("me")}>예시로 먼저 둘러보기</Button>
             </div>
             <p className="text-[0.8rem] text-faint">회원가입 없이 시작 · 입력 정보는 서버로 보내지 않습니다 · 약 1분</p>
           </div>
@@ -47,7 +47,7 @@ export function Landing() {
           <div className="rounded-3xl border border-line/80 bg-deep/90 p-5 sm:p-6 shadow-2xl shadow-black/30">
             <div className="flex items-center gap-2">
               <span className="text-[0.8rem] text-mist">0~90세 인생 지도 미리보기</span>
-              <span className="ml-auto">{state.profileIsSample ? <Badge layer="sample">테스트 사용자</Badge> : <Badge layer="calc" />}</span>
+              <span className="ml-auto">{state.profileIsSample ? <Badge layer="sample">예시 인물</Badge> : <Badge layer="calc" />}</span>
             </div>
             <p className="mt-3 font-display text-[1.2rem] leading-snug text-ivory">{character.coreSentence}</p>
             <p className="mt-1 text-[0.78rem] text-faint tabular">{name} · {chart.solarDate.y}.{String(chart.solarDate.m).padStart(2, "0")}.{String(chart.solarDate.d).padStart(2, "0")} 출생 기준 계산</p>
@@ -123,7 +123,7 @@ export function Landing() {
           <div className="flex-1 min-w-[16rem]">
             <p className="eyebrow">인생 마스터 리포트 · 9,900원</p>
             <h2 className="mt-3 font-display text-[1.6rem] lg:text-[2rem] font-semibold leading-snug">실제 리포트의 한 페이지</h2>
-            <p className="mt-2 text-mist">{state.profileIsSample ? "테스트 사용자" : j(name, "은/는")} 기준으로 지금 계산된 내용입니다. 예시용으로 꾸민 문장이 아닙니다.</p>
+            <p className="mt-2 text-mist">{state.profileIsSample ? "가상의 예시 인물" : j(name, "은/는")} 기준으로 엔진이 지금 계산한 내용입니다. 생년월일을 넣으면 내 리포트로 바뀝니다.</p>
           </div>
           <Button variant="ghost" onClick={() => go("premium")}>포함 내용과 가격 보기</Button>
         </div>
@@ -185,6 +185,7 @@ export function Landing() {
           <button onClick={() => go("method")} className={cx("hover:text-mist cursor-pointer")}>계산 기준과 근거</button>
           <button onClick={() => go("premium")} className="hover:text-mist cursor-pointer">가격·환불 안내</button>
           <span>실제 결제·회원 기능 없음</span>
+          <button onClick={() => go("feedback")} className="hover:text-mist cursor-pointer">베타 의견 보내기</button>
         </div>
       </footer>
     </div>

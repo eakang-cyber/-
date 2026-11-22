@@ -25,6 +25,8 @@ export interface State {
   questions: PersonalQuestion[];
   choice: ChoiceInput;
   saveMode: SaveMode;
+  /** 베타 테스트 행동 신호 — 출생 정보·이름은 담지 않는다 */
+  beta: { visited: string[]; purchaseClicked: boolean };
 }
 
 const initial: State = {
@@ -35,12 +37,13 @@ const initial: State = {
   partnerIsSample: true,
   partnerConsent: false,
   relationType: "연인·배우자",
-  interest: "창업",
+  interest: "직장",
   premium: false,
   records: SAMPLE_RECORDS,
   questions: [],
   choice: SAMPLE_CHOICE,
   saveMode: "memory",
+  beta: { visited: [], purchaseClicked: false },
 };
 
 type Action =
@@ -58,12 +61,15 @@ type Action =
   | { type: "deleteQuestion"; id: string }
   | { type: "setChoice"; choice: ChoiceInput }
   | { type: "setSaveMode"; value: SaveMode }
+  | { type: "visit"; route: string }
+  | { type: "betaPurchaseClick" }
   | { type: "resetAll" }
   | { type: "hydrate"; state: State };
 
 function reducer(s: State, a: Action): State {
   switch (a.type) {
-    case "setProfile": return { ...s, profile: a.profile, profileIsSample: a.isSample };
+    // 내 정보를 넣으면 예시 기록은 지운다(다른 사람의 예시가 내 아카이브에 섞이지 않도록)
+    case "setProfile": return { ...s, profile: a.profile, profileIsSample: a.isSample, records: a.isSample ? s.records : s.records.filter((r) => !r.sample) };
     case "setPolicy": return { ...s, policy: a.policy };
     case "setPartner": return { ...s, partner: a.partner, partnerIsSample: a.isSample };
     case "setConsent": return { ...s, partnerConsent: a.value };
@@ -80,6 +86,8 @@ function reducer(s: State, a: Action): State {
     case "deleteQuestion": return { ...s, questions: s.questions.filter((q) => q.id !== a.id) };
     case "setChoice": return { ...s, choice: a.choice };
     case "setSaveMode": return { ...s, saveMode: a.value };
+    case "visit": return s.beta.visited.includes(a.route) ? s : { ...s, beta: { ...s.beta, visited: [...s.beta.visited, a.route] } };
+    case "betaPurchaseClick": return { ...s, beta: { ...s.beta, purchaseClicked: true } };
     case "resetAll": return { ...initial };
     case "hydrate": return a.state;
   }
@@ -91,7 +99,7 @@ interface Ctx {
   state: State;
   dispatch: React.Dispatch<Action>;
   chart: ChartResult;
-  /** 사용자가 입력한 프로필이 없으면 샘플(강윤규) */
+  /** 사용자가 입력한 프로필이 없으면 가상의 예시 인물 */
   subject: BirthInput;
   partnerChart: ChartResult | null;
   partnerError: string | null;
@@ -141,4 +149,4 @@ export function useStore() {
   return c;
 }
 
-export const displayName = (s: State, subject: BirthInput) => subject.name || (s.profileIsSample ? "강윤규" : "나");
+export const displayName = (s: State, subject: BirthInput) => subject.name || (s.profileIsSample ? "예시 인물" : "나");
