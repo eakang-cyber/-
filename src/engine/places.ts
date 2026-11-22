@@ -35,3 +35,32 @@ export function bearing(from: { lat: number; lon: number }, to: { lat: number; l
   const deg = ((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360;
   return { deg, km: Math.sqrt(dx * dx + dy * dy) * 111 };
 }
+
+// ---------- 지역 안 후보지(지역 추천용) ----------
+// 좌표는 근사값. 후보 목록은 대표 산업 입지 예시이며 실제 분양·매물 여부와 무관하다.
+export interface Region { name: string; center: Place; aliases: string[]; sites: (Place & { area: string })[] }
+
+export const REGIONS: Region[] = [
+  {
+    name: "대전", center: { name: "대전시청", lat: 36.35, lon: 127.38 }, aliases: ["대전", "대덕", "유성"],
+    sites: [
+      { name: "신탄진 일대", area: "대덕구 북부", lat: 36.45, lon: 127.43 },
+      { name: "대덕산업단지", area: "대덕구 문평·신일동", lat: 36.42, lon: 127.42 },
+      { name: "대덕테크노밸리", area: "유성구 관평동", lat: 36.43, lon: 127.39 },
+      { name: "대전산업단지", area: "대덕구 대화동", lat: 36.37, lon: 127.41 },
+      { name: "장대 도시첨단산업단지", area: "유성구 장대동", lat: 36.37, lon: 127.33 },
+      { name: "평촌산업단지", area: "서구 평촌동", lat: 36.24, lon: 127.33 },
+      { name: "하소산업단지", area: "동구 하소동", lat: 36.28, lon: 127.48 },
+    ],
+  },
+];
+
+/** 글·장소에서 추천 대상 지역을 찾는다. 등록 지역이 없으면 장소 주변 45km를 임시 지역으로 만든다. */
+export function findRegion(text: string): Region | null {
+  const r = REGIONS.find((x) => x.aliases.some((a) => text.includes(a)) || x.sites.some((s) => text.includes(s.name.split(" ")[0])));
+  if (r) return r;
+  const p = findPlace(text);
+  if (!p) return null;
+  const sites = PLACES.filter((q) => q.name !== p.name && bearing(p, q).km < 45).map((q) => ({ ...q, area: "인근 지역" }));
+  return sites.length >= 3 ? { name: `${p.name} 일대`, center: p, aliases: [p.name], sites: [{ ...p, area: "중심" }, ...sites].slice(0, 8) } : null;
+}

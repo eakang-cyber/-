@@ -6,7 +6,7 @@ import {
 } from "@/engine/constants";
 import { ChartResult, MonthPeriod, annualPillar, monthPeriods } from "@/engine/chart";
 import { cityById } from "@/engine/cities";
-import { Place, bearing, findPlace } from "@/engine/places";
+import { Place, Region, bearing, findPlace } from "@/engine/places";
 import { j } from "./josa";
 
 // ---------- 힘이 되는 기운(억부) ----------
@@ -178,7 +178,7 @@ const ELEMENT_TRAIT: Record<Element, string> = {
   0: "성장 욕구가 강하고 곧은", 1: "밝고 열정적인", 2: "든든하고 포용력 있는", 3: "깔끔하고 원칙이 분명한", 4: "생각이 깊고 유연한",
 };
 
-export interface LoveRec { when: Window; trait: string; seek: string; line: string; why: string; facts: string[] }
+export interface LoveRec { when: Window; trait: string; seek: string; line: string; why: string; god: TenGod; partnerEl: Element; facts: string[] }
 
 export function recommendLove(c: ChartResult, name: string, seek: "여성" | "남성" | "사람", now = new Date()): LoveRec {
   const dmEl = stemElement(c.dayMaster);
@@ -207,7 +207,7 @@ export function recommendLove(c: ChartResult, name: string, seek: "여성" | "�
   const all = [...new Set(when.months.flatMap((m) => m.why.flatMap((w) => w.split(", "))))];
   const reasons = [...all.filter((w) => /인연|도화|가까운 관계/.test(w)), ...all.filter((w) => !/인연|도화|가까운 관계/.test(w))].slice(0, 2);
   return {
-    when, trait, seek,
+    when, trait, seek, god, partnerEl: stemElement(starStem),
     why: `${name}님 사주에서 인연을 뜻하는 기운은 ${partnerEls.map((e) => ELEMENT_KO[e]).join("·")}인데, ${when.short}에 ${reasons.length ? reasons.join(", ") : "그 기운이 들어오는 흐름"}이 겹쳐요.`,
     line: `${name}님은 ${when.short}, 특히 ${when.bestLabel}쯤 연애운이 열리는 흐름이에요. ${trait} ${seek}을 만날 가능성이 커요.`,
     facts: [
@@ -217,6 +217,31 @@ export function recommendLove(c: ChartResult, name: string, seek: "여성" | "�
       ...when.months.map((m) => `${m.p.y}.${m.p.m}: ${m.why.join(", ") || "-"}`),
     ],
   };
+}
+
+// ---------- 지역 안 후보지 순위 ----------
+
+export interface SiteRec {
+  name: string; area: string; direction: string; element: Element;
+  verdict: "good" | "money" | "effort"; rank: number; facts: string[];
+}
+export interface SitesRec { region: Region; sites: SiteRec[]; bestDirection: string; facts: string[] }
+
+export function recommendSites(c: ChartResult, region: Region, moneyTopic: boolean): SitesRec {
+  const h = helpfulElements(c);
+  const wealthEl = ((stemElement(c.dayMaster) + 2) % 5) as Element;
+  const rows = region.sites.map((s) => {
+    const { deg, km } = bearing(region.center, s);
+    const sector = km < 3 ? { name: "중심", el: 2 as Element } : SECTORS[Math.round(deg / 45) % 8];
+    const verdict: SiteRec["verdict"] = h.helpful.includes(sector.el) ? "good" : moneyTopic && sector.el === wealthEl ? "money" : "effort";
+    const score = (verdict === "good" ? 3 : verdict === "money" ? 1.5 : 0) - (h.unhelpful.includes(sector.el) && verdict === "effort" ? 1 : 0) - km / 1000;
+    return { s, sector, verdict, score, deg, km };
+  }).sort((a, b) => b.score - a.score);
+  const sites = rows.map((r, i) => ({
+    name: r.s.name, area: r.s.area, direction: r.sector.name, element: r.sector.el, verdict: r.verdict, rank: i + 1,
+    facts: [`${region.center.name} 기준 ${r.s.name}: 방위각 ${r.deg.toFixed(0)}°, ${r.km.toFixed(1)}km → ${r.sector.name}(${ELEMENT_KO[r.sector.el]})`],
+  }));
+  return { region, sites, bestDirection: sites[0].direction, facts: [...h.facts, ...sites.flatMap((x) => x.facts)] };
 }
 
 export { findPlace };

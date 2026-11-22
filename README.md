@@ -9,10 +9,10 @@
 ```bash
 npm install
 npm run dev            # http://localhost:3000
-npm test               # 엔진·해석·상담 단위 테스트(33건)
+npm test               # 엔진·해석·상담·추천 단위 테스트(46건)
 npm run build && npm start
 BASE_URL=http://localhost:3000 node tests/e2e/smoke.cjs     # E2E 스모크(15건, Playwright)
-BASE_URL=http://localhost:3000 node tests/e2e/counsel.cjs   # 고민상담소 흐름(14건)
+BASE_URL=http://localhost:3000 node tests/e2e/counsel.cjs   # 고민상담소 흐름(18건)
 npm run build && npm run build:artifact                    # dist/destiny-os.html 단일 파일 미리보기
 ```
 

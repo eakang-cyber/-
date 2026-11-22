@@ -44,3 +44,38 @@ describe("직관적 추천", () => {
     for (const id of ["YONG-EOKBU-001", "DIR-BAGUA-001", "LOVE-STAR-001", "REC-TIMING-001"]) expect(RULE_MAP[id], id).toBeDefined();
   });
 });
+
+import { buildCounsel } from "@/rules/counsel";
+import { findRegion } from "@/engine/places";
+import { recommendSites } from "@/rules/recommend";
+
+describe("지역 추천 · 신점 말투", () => {
+  const ask = (b: BirthInput, text: string) => buildCounsel(computeChart(b), { text, topic: "realestate", deadline: null, feeling: null, concern: null, optionA: "", optionB: "", baseCityId: "seoul", place: "", seek: null }, NOW, "테스트")!;
+  it("대전 후보지 7곳을 사주 기준으로 줄 세운다(사람마다 1순위가 다름)", () => {
+    const r = findRegion("대전 공장 부지")!;
+    expect(r.name).toBe("대전");
+    const a = recommendSites(computeChart(ex), r, true);
+    const b = recommendSites(computeChart(other), r, true);
+    expect(a.sites).toHaveLength(7);
+    expect(a.sites[0].name).not.toBe(b.sites[0].name);
+  });
+  it("지역(사는 곳 기준)과 후보지(지역 중심 기준) 판단이 서로 어긋나지 않는다", () => {
+    const a = ask(ex, "대전에 공장 부지, 신탄진도 보고 있어요");
+    const lines = a.rec.oracle.join(" ");
+    expect(lines).toContain("대전, 당신 자리예요");
+    const shin = a.rec.sites!.sites.find((s) => s.name.startsWith("신탄진"))!;
+    expect(lines).toContain(shin.verdict === "good" ? "신탄진, 잘 골랐어요" : "신탄진은");
+    expect(lines).not.toContain("신탄진, 당신 자리예요");
+  });
+  it("신점 첫 줄: 계절 + 달, 짧고 단정", () => {
+    const a = ask(ex, "대전에 공장 부지를 사려고 해요");
+    expect(a.rec.oracle[0]).toMatch(/^(올(봄|여름|가을|겨울)|내년 \S+|내후년 \S+|\d+년 \S+), .*\d+월이에요\.$/);
+    expect(a.rec.oracle[1]).toBe("이때 계약하세요.");
+    for (const l of a.rec.oracle) expect(l.length).toBeLessThan(40);
+  });
+  it("연애 신점: 시기 · 상대 · 성향", () => {
+    const a = buildCounsel(computeChart(ex), { text: "언제 연애할 수 있을까요", topic: "love", deadline: null, feeling: null, concern: null, optionA: "", optionB: "", baseCityId: "seoul", place: "", seek: "남성" }, NOW, "테스트")!;
+    expect(a.rec.oracle[0]).toMatch(/쯤 사람 들어와요\.$/);
+    expect(a.rec.oracle[1]).toMatch(/남자예요\.$/);
+  });
+});

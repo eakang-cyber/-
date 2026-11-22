@@ -46,6 +46,7 @@ export interface State {
   counsel: CounselInput;
   counselSubmitted: boolean;
   counselReaction: string | null;
+  whereUnlocked: boolean; // 데모 결제: 지역 추천 추가 상품
   returnTo: string | null;   // 출생정보 입력 후 돌아갈 화면
 }
 
@@ -69,6 +70,7 @@ const initial: State = {
   counsel: { text: "", topic: null, deadline: null, feeling: null, concern: null, optionA: "", optionB: "", baseCityId: "", place: "", seek: null },
   counselSubmitted: false,
   counselReaction: null,
+  whereUnlocked: false,
   returnTo: null,
 };
 
@@ -96,6 +98,7 @@ type Action =
   | { type: "setCounsel"; patch: Partial<CounselInput> }
   | { type: "submitCounsel"; value: boolean }
   | { type: "reactCounsel"; value: string }
+  | { type: "unlockWhere"; value: boolean }
   | { type: "resetAll" }
   | { type: "hydrate"; state: State };
 
@@ -128,6 +131,7 @@ function reducer(s: State, a: Action): State {
     case "setCounsel": return { ...s, counsel: { ...s.counsel, ...a.patch } };
     case "submitCounsel": return { ...s, counselSubmitted: a.value };
     case "reactCounsel": return { ...s, counselReaction: a.value };
+    case "unlockWhere": return { ...s, whereUnlocked: a.value };
     case "resetAll": return { ...initial };
     case "hydrate": return a.state;
   }

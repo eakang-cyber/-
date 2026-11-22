@@ -66,6 +66,7 @@ export function Feedback() {
     `- 둘러본 화면(${visited.length}): ${visited.join(", ") || "없음"}`,
     `- 마스터 리포트(9,900원) 모의 결제 누름: ${state.beta.purchaseClicked ? "예" : "아니요"}`,
     `- 심층 상담 표시 가격: ${state.beta.priceVariant ? state.beta.priceVariant.toLocaleString("ko-KR") + "원" : "-"} / 모의 결제 누름: ${state.beta.decisionClicked ? "예" : "아니요"}`,
+    `- 지역 추천(9,900원 추가) 모의 결제 누름: ${state.whereUnlocked ? "예" : "아니요"}`,
     `- 고민 분야: ${state.counsel.topic ?? "(상담 안 함)"} / 상담지 반응: ${state.counselReaction ?? "(없음)"}`,
     `- 내 생년월일로 봤나: ${state.profileIsSample ? "아니요(예시 인물로만 봄)" : "예"}`,
   ].join("\n");
@@ -77,7 +78,7 @@ export function Feedback() {
       v: 1, at: new Date().toISOString(),
       answers: a, wish: wish.trim().slice(0, 600),
       visited: state.beta.visited, purchaseClicked: state.beta.purchaseClicked, ownProfile: !state.profileIsSample,
-      priceVariant: state.beta.priceVariant, deepClicked: state.beta.decisionClicked, counselTopic: state.counsel.topic, counselReaction: state.counselReaction,
+      priceVariant: state.beta.priceVariant, deepClicked: state.beta.decisionClicked, counselTopic: state.counsel.topic, counselReaction: state.counselReaction, whereClicked: state.whereUnlocked,
     });
     setSave(res);
   };

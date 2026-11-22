@@ -7,7 +7,10 @@ import { Block, buildCharacter } from "./interpret";
 import { CHECKLIST, CheckItem, DecisionType } from "./decision";
 import { GROUP_TEXT } from "./content";
 import { j, jq } from "./josa";
-import { LoveRec, PlaceRec, TimingRec, findPlace, helpfulElements, recommendLove, recommendPlace, recommendTiming } from "./recommend";
+import { LoveRec, PlaceRec, SitesRec, TimingRec, findPlace, helpfulElements, recommendLove, recommendPlace, recommendSites, recommendTiming } from "./recommend";
+import { oracleLines } from "./oracle";
+import { REGIONS, bearing, findRegion } from "@/engine/places";
+import { cityById } from "@/engine/cities";
 import { ELEMENT_KO } from "@/engine/constants";
 
 export type Topic = "career" | "money" | "realestate" | "business" | "love" | "family" | "people" | "self";
@@ -142,6 +145,10 @@ const CONCERN_TEXT: Record<(typeof CONCERNS)[number], string> = {
 };
 
 export interface Recommendation {
+  /** 신점 말투의 결론 몇 줄 */
+  oracle: string[];
+  /** 지역 안 후보지 순위(추가 결제 상품) */
+  sites: SitesRec | null;
   headline: string;
   why: string;
   avoid: string | null;
@@ -245,13 +252,31 @@ export function buildCounsel(chart: ChartResult, inp: CounselInput, now = new Da
     people: `관계를 정리하거나 회복하기 좋은 때는 ${best.label}이에요. ${best.bestLabel}에 먼저 움직여 보세요.`,
     self: `새로운 방향을 시작하기 좋은 때는 ${best.label}이에요. ${best.bestLabel}에 첫 시도를 해 보세요.`,
   };
-  const headline = [lead[topic.id], placeRec?.line].filter(Boolean).join(" ");
+  let headline = [lead[topic.id], placeRec?.line].filter(Boolean).join(" ");
   const bestWhy = best.months.find((m) => m.p.m === best.best.m)?.why ?? [];
   const why = love ? love.why : `${name}님 사주는 ${h.helpful.map((e) => ELEMENT_KO[e]).join("·")} 기운이 힘이 되는 구조인데, ${best.short}에 ${bestWhy.length ? bestWhy.slice(0, 2).join(", ") : "그 기운"}${bestWhy.length ? "이 겹쳐요" : "이 들어와요"}.`;
   const avoid = timingRec.avoid && topic.id !== "love" ? `${j(timingRec.avoid.label, "은/는")} 서두르지 않는 게 좋아요. 힘이 되는 기운이 약하게 들어오는 때예요.` : null;
+  const region = ["realestate", "business"].includes(topic.id) ? findRegion(`${inp.place} ${inp.text}`) : null;
+  const sites = region ? recommendSites(chart, region, moneyTopic) : null;
+  // 등록 지역(예: 대전)이면 '지역'은 사는 곳 기준, '후보지'는 지역 중심 기준으로 판단해 서로 어긋나지 않게 한다.
+  let siteCtx: import("./oracle").SiteContext | null = null;
+  if (sites && region && REGIONS.includes(region)) {
+    const base = cityById(inp.baseCityId || chart.input.cityId);
+    const sameArea = bearing(base, region.center).km < 12;
+    const regionPlace = sameArea ? null : recommendPlace(chart, { ...region.center, name: region.name }, base.id, name, moneyTopic);
+    const text = `${inp.place} ${inp.text}`;
+    const hit = sites.sites.find((x) => text.includes(x.name.split(" ")[0]));
+    siteCtx = { regionPlace, siteName: hit ? hit.name.replace(" 일대", "") : null, siteVerdict: hit?.verdict ?? null, sites };
+  }
+  const oracle = oracleLines(topic.id, best, timingRec.avoid && topic.id !== "love" ? timingRec.avoid : null, placeRec, love, siteCtx);
+  if (siteCtx) {
+    const sv = siteCtx.siteName && siteCtx.siteVerdict ? `${siteCtx.sites.region.name} 안에서 보면 ${siteCtx.siteName}${siteCtx.siteVerdict === "good" ? "은 기운이 맞는 쪽" : siteCtx.siteVerdict === "money" ? "은 재물 기운은 있지만 힘이 드는 쪽" : "은 기운을 쓰는 쪽"}이고, 가장 맞는 쪽은 ${siteCtx.sites.bestDirection}이에요.` : `${siteCtx.sites.region.name} 안에서는 ${siteCtx.sites.bestDirection}이 가장 맞아요.`;
+    headline = [lead[topic.id], siteCtx.regionPlace?.line, sv].filter(Boolean).join(" ");
+  }
   const rec: Recommendation = {
+    oracle, sites,
     headline, why, avoid, timing: timingRec, place: placeRec, love,
-    ruleIds: ["YONG-EOKBU-001", "REC-TIMING-001", "LUCK-MONTH-001", ...(placeRec ? ["DIR-BAGUA-001"] : []), ...(love ? ["LOVE-STAR-001"] : [])],
+    ruleIds: ["YONG-EOKBU-001", "REC-TIMING-001", "LUCK-MONTH-001", ...(placeRec || sites ? ["DIR-BAGUA-001"] : []), ...(love ? ["LOVE-STAR-001"] : [])],
     facts: [...(love ? love.facts : timingRec.facts), ...(placeRec ? placeRec.facts.slice(0, 1) : [])],
   };
 
@@ -266,12 +291,12 @@ export function counselPrompt(inp: CounselInput, a: CounselAnswer): string {
     선택지: [inp.optionA, inp.optionB].filter((x) => x.trim()),
     사주근거: a.me.map((b) => ({ 제목: b.title, 내용: b.body, 규칙: b.ruleIds })),
     시기근거: { 제목: a.timing.title, 내용: a.timing.body, 규칙: a.timing.ruleIds },
-    추천: { 결론: a.rec.headline, 이유: a.rec.why, 피할때: a.rec.avoid, 월별순위: a.rec.timing.ranked.map((m) => `${m.p.y}.${m.p.m}`) },
+    추천: { 신점결론: a.rec.oracle, 결론: a.rec.headline, 이유: a.rec.why, 피할때: a.rec.avoid, 월별순위: a.rec.timing.ranked.map((m) => `${m.p.y}.${m.p.m}`) },
   };
   return `당신은 '운명OS'의 고민 상담 설명자입니다. 사주를 계산하지 말고, 아래 [근거]에 있는 전통 해석만 사용해 고객의 고민에 한국어로 답하세요.
 
 규칙:
-- 결론부터 직관적으로 말하세요. [근거]의 '추천' 결론(시기·장소·인연)을 그대로 쓰고 바꾸지 마세요. 예: "내년 봄, 특히 3월을 추천드려요." "신탄진은 잘 맞는 편이에요."
+- 신점처럼 말하세요: 짧고 단정한 존댓말, 한 문장 25자 안팎. 결론부터. [근거]의 '신점결론'의 시기·장소·인연은 그대로 쓰고 바꾸지 마세요. 예: "올겨울, 12월이에요. 이때 계약하세요." "신탄진? 돈은 보여요. 대신 손이 많이 가요."
 - 빙빙 돌려 말하지 말고, 고객 이름을 불러 단정하지 않되 분명하게 권하세요("추천드려요", "~할 가능성이 커요").
 - 고객의 말을 1번 그대로 인용해 '내 이야기'로 느끼게 하세요.
 - 확률·퍼센트·점수는 말하지 마세요. 사망·질병·사고·파산·이혼 같은 불행 예언 금지.

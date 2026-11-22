@@ -13,6 +13,9 @@ import { CONCERNS, DEADLINES, FEELINGS, TOPICS, Topic, hasCrisisSignal, buildCou
 import { PHASES } from "@/rules/decision";
 import { CITIES } from "@/engine/cities";
 import { findPlace } from "@/engine/places";
+import type { SitesRec } from "@/rules/recommend";
+import { siteLine, sitesFreeLine } from "@/rules/oracle";
+import { ELEMENT_KO } from "@/engine/constants";
 import { STEMS, BRANCHES } from "@/engine/constants";
 
 const EXAMPLES = [
@@ -209,12 +212,24 @@ function AnswerSheet({ a }: { a: CounselAnswer }) {
 
       <div className="rounded-3xl border border-gold/60 bg-raised p-6 sm:p-7 flex flex-col gap-3">
         <div className="flex items-center gap-2"><p className="eyebrow">결론</p><span className="ml-auto"><Badge layer="rule">사주 기준 추천</Badge></span></div>
-        <p className="font-display text-[1.3rem] sm:text-[1.55rem] leading-[1.55] font-semibold text-ivory">{a.rec.headline}</p>
-        <p className="text-[0.95rem] text-ivory/85 leading-relaxed">{a.rec.why}</p>
-        {a.rec.avoid && <p className="text-[0.92rem] text-mist">{a.rec.avoid}</p>}
-        <Evidence block={{ ruleIds: a.rec.ruleIds, facts: a.rec.facts }} label="이 추천의 근거" />
+        <div className="flex flex-col gap-1.5" aria-label="결론">
+          {a.rec.oracle.map((line, i) => (
+            <p key={i} className={cx("font-display font-semibold leading-[1.45]", i === 0 ? "text-[1.7rem] sm:text-[2rem] text-gold" : "text-[1.2rem] sm:text-[1.35rem] text-ivory")}>{line}</p>
+          ))}
+        </div>
+        <details className="group mt-1">
+          <summary className="cursor-pointer text-[0.85rem] text-mist hover:text-gold list-none">왜 그런지 풀어서 보기 <span className="inline-block transition-transform group-open:rotate-90">›</span></summary>
+          <div className="mt-3 flex flex-col gap-2">
+            <p className="text-[0.93rem] text-ivory/85 leading-relaxed">{a.rec.headline}</p>
+            <p className="text-[0.93rem] text-ivory/85 leading-relaxed">{a.rec.why}</p>
+            {a.rec.avoid && <p className="text-[0.9rem] text-mist">{a.rec.avoid}</p>}
+            <Evidence block={{ ruleIds: a.rec.ruleIds, facts: a.rec.facts }} label="이 추천의 근거" />
+          </div>
+        </details>
         <p className="text-[0.75rem] text-faint">전통 명리 해석에 근거한 추천이에요. 계약·투자는 아래 현실 조건도 함께 확인하세요.</p>
       </div>
+
+      {a.rec.sites && <WhereCard sites={a.rec.sites} />}
 
       <div className="flex flex-col gap-3">
         <SectionHead eyebrow="전통 해석" title="이 고민 앞의 나" desc={a.topic.why} />
@@ -444,6 +459,70 @@ function DeepCounsel({ a }: { a: CounselAnswer }) {
           </div>
           <span className="text-gold transition-transform group-hover:translate-x-1" aria-hidden>→</span>
         </button>
+      )}
+    </section>
+  );
+}
+
+const WHERE_PRICE = 9900;
+
+function WhereCard({ sites }: { sites: SitesRec }) {
+  const { state, dispatch, toast } = useStore();
+  const [agree, setAgree] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const unlocked = state.whereUnlocked;
+  const pay = () => {
+    if (!agree || busy) return;
+    setBusy(true);
+    setTimeout(() => { dispatch({ type: "unlockWhere", value: true }); toast("데모 결제 완료 — 실제 청구는 없습니다"); setBusy(false); }, 700);
+  };
+  const top = sites.sites.filter((x) => x.verdict === sites.sites[0].verdict);
+  return (
+    <section className="rounded-3xl border border-line/80 bg-deep p-6 sm:p-7 flex flex-col gap-4">
+      <div className="flex items-center gap-2"><p className="eyebrow">어디가 좋을까</p><span className="ml-auto"><Badge layer="rule">방위 · 사주 기준</Badge></span></div>
+      <p className="font-display text-[1.5rem] sm:text-[1.75rem] font-semibold text-gold leading-snug">{sitesFreeLine(sites)}</p>
+      {!unlocked ? (
+        <>
+          <p className="text-[0.92rem] text-mist">{sites.region.name} 안의 후보 {sites.sites.length}곳을 내 사주 기준으로 줄 세웠어요. 1순위가 어디인지, 피해야 할 곳은 어디인지 바로 알려 드려요.</p>
+          <ol className="flex flex-col gap-1.5" aria-label="잠긴 후보 순위">
+            {sites.sites.slice(0, 3).map((x) => (
+              <li key={x.rank} className="flex items-center gap-3 rounded-xl border border-line/60 px-4 h-11 text-[0.9rem]">
+                <span className="tabular text-faint w-4">{x.rank}</span><span className="text-faint">{x.rank === 1 ? "1순위 후보지" : `${x.rank}순위 후보지`}</span>
+                <span className="ml-auto text-[0.75rem] text-faint">추가 결제 후 공개</span>
+              </li>
+            ))}
+          </ol>
+          <div className="paper rounded-2xl p-5 flex flex-col gap-3">
+            <div className="flex items-baseline gap-2"><span className="font-display text-[1.7rem] font-semibold tabular">{WHERE_PRICE.toLocaleString("ko-KR")}</span><span>원</span><span className="ml-auto text-[0.78rem] text-ink-soft">지역 추천 · 추가 결제</span></div>
+            <label className="flex items-start gap-2.5 text-[0.85rem] cursor-pointer">
+              <input type="checkbox" className="mt-0.5 h-4 w-4 accent-[#101827]" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
+              사주 기준 추천이며, 실제 매물·용도지역·가격은 따로 확인해야 함을 이해했습니다.
+            </label>
+            <Button variant="paper" onClick={pay} disabled={!agree || busy}>{busy ? "데모 결제 처리 중…" : `${WHERE_PRICE.toLocaleString("ko-KR")}원 모의 결제 (데모)`}</Button>
+            <p className="text-[0.75rem] text-ink-soft">베타 데모입니다. 실제로 청구되지 않습니다.</p>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex items-center gap-2"><Badge layer="premium">지역 추천</Badge><Badge layer="demo" /></div>
+          <p className="font-display text-[1.25rem] text-ivory leading-snug">
+            {top.length > 1 ? `${top.map((x) => x.name).join(", ")}. 이쪽이 당신 자리예요.` : `1순위는 ${top[0].name}이에요. 여기부터 보세요.`}
+          </p>
+          <ol className="flex flex-col gap-2">
+            {sites.sites.map((x) => (
+              <li key={x.rank} className={cx("rounded-xl border p-4 flex gap-3", x.verdict === "good" ? "border-gold/50 bg-gold/5" : "border-line/60")}>
+                <span className={cx("tabular w-5 shrink-0 font-semibold", x.verdict === "good" ? "text-gold" : "text-faint")}>{x.rank}</span>
+                <div className="min-w-0">
+                  <p className="text-ivory">{x.name} <span className="text-[0.78rem] text-faint">· {x.area} · {sites.region.center.name} 기준 {x.direction}({ELEMENT_KO[x.element]})</span></p>
+                  <p className={cx("text-[0.9rem] mt-0.5", x.verdict === "good" ? "text-gold" : x.verdict === "money" ? "text-ivory/85" : "text-mist")}>{siteLine(x.verdict)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <Evidence block={{ ruleIds: ["DIR-BAGUA-001", "YONG-EOKBU-001"], facts: sites.facts }} label="순위의 근거" />
+          <p className="text-[0.78rem] text-faint">후보는 대표 산업 입지 예시예요. 실제 매물·용도지역은 <a href="https://www.eum.go.kr" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">토지이음</a>에서 지번으로 확인하세요.</p>
+          <Button variant="quiet" size="sm" onClick={() => dispatch({ type: "unlockWhere", value: false })}>데모 결제 해제</Button>
+        </>
       )}
     </section>
   );
